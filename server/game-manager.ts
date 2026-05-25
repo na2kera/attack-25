@@ -33,6 +33,7 @@ function recalculateScores(gameState: GameState): void {
 export class GameManager {
   private rooms = new Map<RoomId, GameState>();
   private currentAnswers = new Map<RoomId, string>();
+  private usedQuestionIds = new Map<RoomId, Set<string>>();
 
   createRoom(): { roomId: RoomId; gameState: GameState } {
     let roomId: string;
@@ -161,7 +162,13 @@ export class GameManager {
     const q = gameState.currentQuestion;
     if (q.status !== "waiting") return { error: "question_not_waiting" };
 
-    const question = selectRandomQuestion();
+    const usedIds = this.usedQuestionIds.get(roomId) ?? new Set<string>();
+    const question = selectRandomQuestion(usedIds);
+    if (!question) return { error: "no_more_questions" };
+
+    usedIds.add(question.id);
+    this.usedQuestionIds.set(roomId, usedIds);
+
     q.sourceQuestionId = question.id;
     q.text = question.text;
     q.status = "open";
