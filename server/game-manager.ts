@@ -10,7 +10,7 @@ import {
   createInitialQuestionState,
   generateId,
 } from "../types/game.js";
-import { getSandwichedPanelNumbers } from "../types/panel-flip.js";
+import { getSandwichedPanelNumbers, isValidPlacement } from "../types/panel-flip.js";
 import { selectRandomQuestion } from "./questions.js";
 
 function generateRoomId(): string {
@@ -333,6 +333,12 @@ export class GameManager {
 
     const panel = gameState.panels.find((p) => p.number === panelNumber);
     if (!panel) return { error: "panel_not_found" };
+
+    if (panel.ownerPlayerId !== null) return { error: "panel_already_owned" };
+
+    if (!isValidPlacement(gameState.panels, panelNumber, playerId)) {
+      return { error: "invalid_placement" };
+    }
 
     panel.ownerPlayerId = playerId;
 
