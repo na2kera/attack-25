@@ -239,7 +239,7 @@ export function MasterPanel({ roomId }: Props) {
               <QrCode
                 value={playerUrl}
                 label="プレイヤー参加URLのQRコード"
-                size={112}
+                size={168}
               />
               <div className="min-w-0 text-xs sm:text-center">
                 <p className="font-bold" style={{ color: "var(--ctrl-text)" }}>

@@ -14,6 +14,11 @@ export function getSocket(): AppSocket {
   if (!socket) {
     socket = io({
       autoConnect: false,
+      // LAN やモバイル回線でもつながりやすいよう polling も許可
+      transports: ["polling", "websocket"],
+      timeout: 10_000,
+      reconnection: true,
+      reconnectionAttempts: 5,
     });
   }
   return socket;

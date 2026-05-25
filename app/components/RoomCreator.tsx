@@ -7,21 +7,62 @@ import { getSocket } from "@/lib/socket";
 export function RoomCreator() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = () => {
     setLoading(true);
+    setStatus("サーバーに接続中...");
     setError(null);
+
     const socket = getSocket();
-    if (!socket.connected) socket.connect();
-    const doCreate = () => {
+
+    const fail = (message: string) => {
+      clearTimeout(timeoutId);
+      socket.off("connect", onConnect);
+      socket.off("connect_error", onConnectError);
+      setError(message);
+      setLoading(false);
+      setStatus(null);
+    };
+
+    const onConnectError = () => {
+      fail(
+        "サーバーに接続できません。npm run dev が起動しているか、同じ Wi-Fi にいるか確認してください。",
+      );
+    };
+
+    const onConnect = () => {
+      clearTimeout(timeoutId);
+      socket.off("connect_error", onConnectError);
+      setStatus("ルームを作成中...");
+
       socket.emit("create_room", {}, (result) => {
-        if (result.ok) router.push(`/master/${result.roomId}`);
-        else { setError("ルームの作成に失敗しました"); setLoading(false); }
+        socket.off("connect", onConnect);
+        if (result.ok) {
+          router.push(`/master/${result.roomId}`);
+          return;
+        }
+        setError("ルームの作成に失敗しました");
+        setLoading(false);
+        setStatus(null);
       });
     };
-    if (socket.connected) doCreate();
-    else socket.once("connect", doCreate);
+
+    const timeoutId = setTimeout(() => {
+      fail(
+        "接続がタイムアウトしました。localhost では動く場合、LAN テストは npm run build && npm start が安定です。",
+      );
+    }, 15_000);
+
+    socket.on("connect", onConnect);
+    socket.on("connect_error", onConnectError);
+
+    if (socket.connected) {
+      onConnect();
+    } else {
+      socket.connect();
+    }
   };
 
   return (
@@ -109,7 +150,9 @@ export function RoomCreator() {
               style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 50%)" }}
             />
           )}
-          <span className="relative">{loading ? "作成中..." : "ゲームルームを作成"}</span>
+          <span className="relative">
+            {loading ? (status ?? "作成中...") : "ゲームルームを作成"}
+          </span>
         </button>
 
         {error && (
