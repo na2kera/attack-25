@@ -22,7 +22,7 @@ type SocketType = Socket<
 >;
 
 function broadcast(io: IoType, roomId: RoomId, gameState: GameState): void {
-  io.to(roomId).emit("game_state_updated", { roomId, gameState });
+  io.to(roomId).emit("game_state_updated", { roomId, gameState, serverTime: Date.now() });
 }
 
 function emitAnswerToMasters(
