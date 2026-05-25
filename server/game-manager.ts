@@ -213,7 +213,8 @@ export class GameManager {
     if (!player) return { error: "player_not_found" };
 
     const q = gameState.currentQuestion;
-    if (q.status !== "open") return { error: "question_not_open" };
+    if (q.status !== "open" && q.status !== "answering")
+      return { error: "question_not_open" };
 
     const alreadyPressed = q.buzzerEvents.some((e) => e.playerId === playerId);
     if (alreadyPressed) return { error: "already_pressed" };

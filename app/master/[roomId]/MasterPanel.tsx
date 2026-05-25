@@ -446,6 +446,14 @@ export function MasterPanel({ roomId }: Props) {
                           >
                             {player?.name ?? "不明"}
                           </span>
+                          <span
+                            className="text-[10px] font-mono tabular-nums"
+                            style={{ color: "var(--ctrl-muted)" }}
+                          >
+                            {q.startedAt
+                              ? ((ev.pressedAt - q.startedAt) / 1000).toFixed(2) + "s"
+                              : ""}
+                          </span>
                           {STATUS_LABEL[ev.status] && (
                             <span
                               className="text-[10px] font-bold px-1.5 py-0.5 rounded border"
