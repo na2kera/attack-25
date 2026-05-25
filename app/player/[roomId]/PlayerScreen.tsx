@@ -300,12 +300,16 @@ export function PlayerScreen({ roomId }: Props) {
   const q = gameState.currentQuestion;
   const myBuzzerEvent = q.buzzerEvents.find((e) => e.playerId === myPlayer.id);
   const isAnswering = q.currentAnswerPlayerId === myPlayer.id;
-  const canBuzz = q.status === "open" && !myBuzzerEvent;
+  const isPenalized = myPlayer.penaltyRemainingTurns > 0;
+  const canBuzz = q.status === "open" && !myBuzzerEvent && !isPenalized;
 
   // Status text
   let statusLabel = "待機中";
   let statusStyle = { bg: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.6)" };
-  if (q.status === "open") {
+  if (isPenalized) {
+    statusLabel = `お手つき ${myPlayer.penaltyRemainingTurns}回休み`;
+    statusStyle = { bg: "var(--atk-error)", color: "#fff" };
+  } else if (q.status === "open") {
     if (myBuzzerEvent) {
       statusLabel = "押下済み";
       statusStyle = { bg: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.7)" };
@@ -324,7 +328,7 @@ export function PlayerScreen({ roomId }: Props) {
       statusLabel = "回答権なし";
       statusStyle = { bg: "rgba(0,0,0,0.15)", color: "rgba(255,255,255,0.5)" };
     }
-  } else if (q.status === "judged") {
+  } else if (!isPenalized && q.status === "judged") {
     if (myBuzzerEvent?.status === "correct") {
       statusLabel = "🎉 正解！";
       statusStyle = { bg: "var(--atk-gold)", color: "#000" };

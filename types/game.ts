@@ -33,6 +33,7 @@ export type Player = {
   color: PlayerColor;
   status: PlayerStatus;
   score: number;
+  penaltyRemainingTurns: number;
   joinedAt: number;
   lastSeenAt: number;
 };

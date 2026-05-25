@@ -33,6 +33,7 @@ export function PlayerList({ players, currentAnswerPlayerId, correctPlayerId }: 
         const cfg = PLAYER_CFG[player.color];
         const isAnswering = player.id === currentAnswerPlayerId;
         const isCorrect   = player.id === correctPlayerId;
+        const isPenalized = player.penaltyRemainingTurns > 0;
 
         return (
           <div
@@ -98,6 +99,18 @@ export function PlayerList({ players, currentAnswerPlayerId, correctPlayerId }: 
                 }}
               >
                 正解
+              </span>
+            )}
+            {isPenalized && !isAnswering && !isCorrect && (
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0"
+                style={{
+                  background: "var(--atk-error)",
+                  borderColor: "var(--panel-red-dark)",
+                  color: "#fff",
+                }}
+              >
+                {player.penaltyRemainingTurns}回休み
               </span>
             )}
           </div>

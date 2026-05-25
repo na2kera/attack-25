@@ -302,17 +302,31 @@ export function BoardDisplay({ roomId }: Props) {
           {activePlayers.map((player) => {
             const podium = PODIUM_CFG[player.color];
             const isActive = player.id === q.currentAnswerPlayerId;
+            const isPenalized = player.penaltyRemainingTurns > 0;
             return (
               <div
                 key={player.id}
                 className={`podium-station ${isActive ? "podium-active" : ""}`}
               >
+                {/* Penalty badge above name */}
+                {isPenalized && (
+                  <div
+                    className="text-xs font-black text-center mb-0.5 px-2 py-0.5 rounded-full"
+                    style={{
+                      background: "var(--atk-error)",
+                      color: "#fff",
+                      fontSize: "clamp(8px, 1.3vw, 11px)",
+                    }}
+                  >
+                    {player.penaltyRemainingTurns}回休み
+                  </div>
+                )}
                 {/* Player name label above podium */}
                 <div
                   className="text-xs font-black text-center mb-1 px-2 py-0.5 rounded-full truncate"
                   style={{
-                    background: "rgba(0,0,0,0.4)",
-                    color: "#fff",
+                    background: isPenalized ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)",
+                    color: isPenalized ? "rgba(255,255,255,0.5)" : "#fff",
                     maxWidth: "clamp(80px, 16vw, 140px)",
                     fontSize: "clamp(9px, 1.5vw, 12px)",
                   }}
