@@ -6,6 +6,7 @@
     "dev": "tsx server.ts",
     "build": "next build && tsc --project tsconfig.server.json",
     "start": "NODE_ENV=production node dist/server.js",
+    "play": "npm run build && npm run start",
     "lint": "eslint"
   },
   "dependencies": {
