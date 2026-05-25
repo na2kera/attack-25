@@ -7,6 +7,10 @@ import { PanelGrid } from "@/app/components/PanelGrid";
 import { PlayerList } from "@/app/components/PlayerList";
 import { QrCode } from "@/app/components/QrCode";
 import type { Player, PanelOperationMode, QuestionState } from "@/types/game";
+import {
+  getPlacementRuleKindForPlayer,
+  getValidPlacementPanelNumbers,
+} from "@/types/panel-flip";
 
 type Props = { roomId: string };
 
@@ -16,6 +20,7 @@ export function MasterPanel({ roomId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
+  const [panelError, setPanelError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!connected || joined) return;
@@ -51,7 +56,16 @@ export function MasterPanel({ roomId }: Props) {
     (event: string, payload: any, cb?: (r: any) => void) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (socket as any).emit(event, payload, (result: any) => {
-        if (result?.ok && result.gameState) setGameState(result.gameState);
+        if (result?.ok && result.gameState) {
+          setGameState(result.gameState);
+          if (event === "set_panel_owner") setPanelError(null);
+        } else if (event === "set_panel_owner" && result?.error) {
+          const messages: Record<string, string> = {
+            invalid_placement: "ルール上、このパネルは取得できません",
+            panel_already_owned: "すでに取得済みのパネルです",
+          };
+          setPanelError(messages[result.error] ?? "パネル操作に失敗しました");
+        }
         cb?.(result);
       });
     },
@@ -99,6 +113,30 @@ export function MasterPanel({ roomId }: Props) {
   const currentAnswerer = gameState.players.find(
     (p) => p.id === q.currentAnswerPlayerId,
   );
+
+  const isSetOwnerMode = gameState.panelOperationMode === "set_owner";
+  const validPanelNumbers =
+    isSetOwnerMode && gameState.selectedPlayerIdForPanelOperation
+      ? getValidPlacementPanelNumbers(
+          gameState.panels,
+          gameState.selectedPlayerIdForPanelOperation,
+        )
+      : undefined;
+  const placementRuleKind =
+    isSetOwnerMode && gameState.selectedPlayerIdForPanelOperation
+      ? getPlacementRuleKindForPlayer(
+          gameState.panels,
+          gameState.selectedPlayerIdForPanelOperation,
+        )
+      : null;
+  const PLACEMENT_RULE_LABEL: Record<
+    NonNullable<typeof placementRuleKind>,
+    string
+  > = {
+    first_move: "初手: 13 のみ取得可",
+    sandwich_required: "挟み必須: 相手パネルを挟めるマスのみ",
+    adjacent_only: "隣接のみ: 取得済みパネルに隣接する空きマス",
+  };
 
   const handlePanelClick = (panelNumber: number) => {
     if (gameState.panelOperationMode === "clear_owner") {
@@ -493,12 +531,33 @@ export function MasterPanel({ roomId }: Props) {
                     ))}
                   </div>
                   {selectedPlayer && (
-                    <p
-                      className="text-xs text-center font-bold"
-                      style={{ color: "var(--atk-gold)" }}
-                    >
-                      選択中: {selectedPlayer.name}
-                    </p>
+                    <div className="space-y-1">
+                      <p
+                        className="text-xs text-center font-bold"
+                        style={{ color: "var(--atk-gold)" }}
+                      >
+                        選択中: {selectedPlayer.name}
+                      </p>
+                      {placementRuleKind && (
+                        <p
+                          className="text-[10px] text-center"
+                          style={{ color: "var(--ctrl-dim)" }}
+                        >
+                          {PLACEMENT_RULE_LABEL[placementRuleKind]}
+                          {validPanelNumbers && validPanelNumbers.length > 0
+                            ? ` (${validPanelNumbers.join(", ")})`
+                            : " (合法手なし)"}
+                        </p>
+                      )}
+                      {panelError && (
+                        <p
+                          className="text-[10px] text-center font-bold"
+                          style={{ color: "var(--atk-error)" }}
+                        >
+                          {panelError}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
@@ -558,6 +617,7 @@ export function MasterPanel({ roomId }: Props) {
                     players={gameState.players}
                     onPanelClick={handlePanelClick}
                     interactive={true}
+                    validPanelNumbers={validPanelNumbers}
                   />
                 </div>
               </div>

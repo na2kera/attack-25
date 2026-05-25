@@ -41,6 +41,8 @@ type Props = {
   onPanelClick?: (panelNumber: number) => void;
   interactive?: boolean;
   selectedPanelNumbers?: number[];
+  /** 合法手。指定時はそれ以外のクリックを無効化 */
+  validPanelNumbers?: number[];
 };
 
 export function PanelGrid({
@@ -49,9 +51,13 @@ export function PanelGrid({
   onPanelClick,
   interactive = false,
   selectedPanelNumbers = [],
+  validPanelNumbers,
 }: Props) {
   const getOwner = (id: string | null) =>
     id ? players.find((p) => p.id === id) : null;
+
+  const hasValidMoveHints = validPanelNumbers !== undefined;
+  const restrictClicks = interactive && hasValidMoveHints;
 
   return (
     <div
@@ -62,12 +68,17 @@ export function PanelGrid({
         const owner = getOwner(panel.ownerPlayerId);
         const cfg = owner ? PANEL_CFG[owner.color] : null;
         const isSelected = selectedPanelNumbers.includes(panel.number);
+        const isValid =
+          !hasValidMoveHints || validPanelNumbers.includes(panel.number);
+        const isHighlighted = hasValidMoveHints && isValid && !owner;
 
         return (
           <button
             key={panel.number}
-            disabled={!interactive}
-            onClick={() => interactive && onPanelClick?.(panel.number)}
+            disabled={!interactive || (restrictClicks && !isValid)}
+            onClick={() =>
+              interactive && isValid && onPanelClick?.(panel.number)
+            }
             className="aspect-square relative flex flex-col items-center justify-center transition-all duration-150 select-none overflow-hidden"
             style={{
               background: cfg ? cfg.gradient : "linear-gradient(180deg, #f5f0e0 0%, #e8dcc0 40%, #d4c8a8 100%)",
@@ -75,14 +86,29 @@ export function PanelGrid({
               boxShadow: cfg
                 ? "inset 0 1px 0 rgba(255,255,255,0.2)"
                 : "inset 0 1px 0 rgba(255,255,255,0.4)",
-              outline: isSelected ? "3px solid var(--atk-gold)" : undefined,
-              outlineOffset: isSelected ? "1px" : undefined,
-              cursor: interactive ? "pointer" : "default",
+              outline: isSelected || isHighlighted
+                ? "3px solid var(--atk-gold)"
+                : undefined,
+              outlineOffset: isSelected || isHighlighted ? "1px" : undefined,
+              opacity: hasValidMoveHints && !isValid && !owner ? 0.45 : 1,
+              cursor: interactive && isValid ? "pointer" : "default",
             }}
-            onMouseEnter={(e) => interactive && ((e.currentTarget as HTMLElement).style.filter = "brightness(1.12)")}
-            onMouseLeave={(e) => interactive && ((e.currentTarget as HTMLElement).style.filter = "")}
-            onMouseDown={(e) => interactive && ((e.currentTarget as HTMLElement).style.transform = "scale(0.93)")}
-            onMouseUp={(e) => interactive && ((e.currentTarget as HTMLElement).style.transform = "")}
+            onMouseEnter={(e) =>
+              interactive &&
+              isValid &&
+              ((e.currentTarget as HTMLElement).style.filter = "brightness(1.12)")
+            }
+            onMouseLeave={(e) =>
+              interactive && ((e.currentTarget as HTMLElement).style.filter = "")
+            }
+            onMouseDown={(e) =>
+              interactive &&
+              isValid &&
+              ((e.currentTarget as HTMLElement).style.transform = "scale(0.93)")
+            }
+            onMouseUp={(e) =>
+              interactive && ((e.currentTarget as HTMLElement).style.transform = "")
+            }
           >
             {/* Number */}
             <span
