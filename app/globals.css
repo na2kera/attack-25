@@ -15,16 +15,24 @@
   --atk-gold-glow:    rgba(251, 191, 36, 0.4);
 
   /* Panel colors — vivid, show-accurate */
-  --panel-red:        #e53935;
+  --panel-red:        #d32f2f;
   --panel-red-dark:   #b71c1c;
-  --panel-green:      #43a047;
-  --panel-green-dark: #2e7d32;
-  --panel-white:      #f0f0f0;
-  --panel-white-dark: #bdbdbd;
-  --panel-blue:       #1e88e5;
-  --panel-blue-dark:  #1565c0;
+  --panel-red-light:  #ef5350;
+  --panel-green:      #2e7d32;
+  --panel-green-dark: #1b5e20;
+  --panel-green-light:#43a047;
+  --panel-white:      #cfd8dc;
+  --panel-white-dark: #90a4ae;
+  --panel-white-light:#eceff1;
+  --panel-blue:       #1565c0;
+  --panel-blue-dark:  #0d47a1;
+  --panel-blue-light: #1e88e5;
   --panel-empty:      #e8dcc0;
   --panel-empty-dark: #c5b898;
+
+  /* Podium stations */
+  --podium-screen:    #1a1a2e;
+  --podium-screen-border: #333;
 
   /* Control room (master screen) */
   --ctrl-bg:      #1a0f00;
@@ -86,3 +94,44 @@ body {
 .animate-atk-flicker  { animation: atk-flicker  2s ease-in-out infinite; }
 .animate-atk-pulse    { animation: atk-glow-pulse 1.8s ease-in-out infinite; }
 .animate-atk-ping     { animation: atk-ring-ping 1s ease-out infinite; }
+
+/* ─── Podium Station ──────────────────────────────────────── */
+.podium-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.podium-body {
+  position: relative;
+  width: clamp(100px, 18vw, 160px);
+  clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+  padding: 12px 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px 6px 0 0;
+}
+
+.podium-screen {
+  background: var(--podium-screen);
+  border: 2px solid var(--podium-screen-border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  text-align: center;
+  width: 80%;
+}
+
+.podium-score {
+  font-family: var(--font-bebas-neue), "Bebas Neue", sans-serif;
+  font-size: clamp(28px, 5vw, 48px);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+
+.podium-active {
+  animation: atk-glow-pulse 1.8s ease-in-out infinite;
+}

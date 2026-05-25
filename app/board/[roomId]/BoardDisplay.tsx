@@ -8,33 +8,37 @@ import type { QuestionState } from "@/types/game";
 
 type Props = { roomId: string };
 
-const SCORE_CARD: Record<
+const PODIUM_CFG: Record<
   string,
-  { bg: string; border: string; text: string; accent: string }
+  { bg: string; bgDark: string; bgLight: string; text: string; glowColor: string }
 > = {
   red: {
     bg: "var(--panel-red)",
-    border: "var(--panel-red-dark)",
+    bgDark: "var(--panel-red-dark)",
+    bgLight: "var(--panel-red-light)",
     text: "#fff",
-    accent: "#ffaaaa",
+    glowColor: "rgba(211, 47, 47, 0.5)",
   },
   green: {
     bg: "var(--panel-green)",
-    border: "var(--panel-green-dark)",
+    bgDark: "var(--panel-green-dark)",
+    bgLight: "var(--panel-green-light)",
     text: "#fff",
-    accent: "#aaffcc",
+    glowColor: "rgba(46, 125, 50, 0.5)",
   },
   white: {
     bg: "var(--panel-white)",
-    border: "var(--panel-white-dark)",
-    text: "#111",
-    accent: "#555",
+    bgDark: "var(--panel-white-dark)",
+    bgLight: "var(--panel-white-light)",
+    text: "#222",
+    glowColor: "rgba(207, 216, 220, 0.5)",
   },
   blue: {
     bg: "var(--panel-blue)",
-    border: "var(--panel-blue-dark)",
+    bgDark: "var(--panel-blue-dark)",
+    bgLight: "var(--panel-blue-light)",
     text: "#fff",
-    accent: "#aad4ff",
+    glowColor: "rgba(21, 101, 192, 0.5)",
   },
 };
 
@@ -113,26 +117,38 @@ export function BoardDisplay({ roomId }: Props) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6 gap-5 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-between relative overflow-hidden"
       style={{
         background: `radial-gradient(ellipse 120% 80% at 50% 100%, var(--atk-orange-deep) 0%, var(--atk-orange) 35%, var(--atk-orange-light) 80%)`,
       }}
     >
-      {/* Subtle vertical stripe texture */}
+      {/* Decorative vertical stripe columns on sides */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.06]"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 40px)",
+            "repeating-linear-gradient(90deg, rgba(255,200,100,0.07) 0px, rgba(255,200,100,0.07) 3px, transparent 3px, transparent 50px)",
         }}
       />
 
-      {/* ── Title ── */}
-      <div className="relative flex flex-col items-center gap-2">
+      {/* Decorative side pillars */}
+      <div className="absolute left-0 top-0 bottom-0 w-[8vw] pointer-events-none"
+        style={{
+          background: "linear-gradient(90deg, rgba(234,88,12,0.4) 0%, transparent 100%)",
+        }}
+      />
+      <div className="absolute right-0 top-0 bottom-0 w-[8vw] pointer-events-none"
+        style={{
+          background: "linear-gradient(-90deg, rgba(234,88,12,0.4) 0%, transparent 100%)",
+        }}
+      />
+
+      {/* ── Top section: Title + Status ── */}
+      <div className="relative flex flex-col items-center gap-2 pt-4 z-10">
         <h1
           className="font-[family-name:var(--font-bebas-neue)] leading-none tracking-widest drop-shadow-lg"
           style={{
-            fontSize: "clamp(48px, 8vw, 96px)",
+            fontSize: "clamp(36px, 6vw, 72px)",
             color: "#fff",
             textShadow:
               "0 4px 12px rgba(0,0,0,0.35), 0 0 40px var(--atk-gold-glow)",
@@ -170,75 +186,117 @@ export function BoardDisplay({ roomId }: Props) {
 
       <BoardQuestionDisplay q={q} />
 
-      {/* ── Panel board with gold frame ── */}
+      {/* ── Panel board with ornate gold frame ── */}
       <div
-        className="relative rounded-2xl p-1"
+        className="relative z-10"
         style={{
-          width: "min(90vw, 560px)",
-          background: "var(--atk-gold)",
+          width: "min(88vw, 520px)",
+          padding: "6px",
+          background: "linear-gradient(135deg, #ffd54f 0%, #ffb300 30%, #ff8f00 60%, #ffd54f 100%)",
+          borderRadius: "8px",
           boxShadow:
-            "0 8px 40px rgba(0,0,0,0.4), 0 0 0 4px var(--atk-gold-dark), inset 0 2px 0 rgba(255,255,255,0.3)",
+            "0 8px 40px rgba(0,0,0,0.45), 0 0 0 3px #b8860b, 0 0 0 6px rgba(255,193,7,0.3), inset 0 2px 0 rgba(255,255,255,0.3)",
         }}
       >
-        {/* Inner white mat */}
-        <div className="rounded-xl p-2" style={{ background: "#fff" }}>
-          <PanelGrid
-            panels={gameState.panels}
-            players={gameState.players}
-            interactive={false}
-          />
+        {/* Ornate frame inner border */}
+        <div
+          style={{
+            padding: "4px",
+            background: "linear-gradient(135deg, #fff8e1 0%, #ffe082 50%, #fff8e1 100%)",
+            borderRadius: "4px",
+          }}
+        >
+          <div style={{ borderRadius: "2px", overflow: "hidden" }}>
+            <PanelGrid
+              panels={gameState.panels}
+              players={gameState.players}
+              interactive={false}
+            />
+          </div>
         </div>
 
-        {/* Corner decorations */}
+        {/* Corner decorations - ornate bolts */}
         {["top-left", "top-right", "bottom-left", "bottom-right"].map((pos) => (
           <div
             key={pos}
-            className={`absolute w-5 h-5 rounded-full border-2 border-[var(--atk-gold-dark)] bg-white
-              ${pos.includes("top") ? "-top-2.5" : "-bottom-2.5"}
-              ${pos.includes("left") ? "-left-2.5" : "-right-2.5"}
+            className={`absolute w-4 h-4 rounded-full
+              ${pos.includes("top") ? "-top-2" : "-bottom-2"}
+              ${pos.includes("left") ? "-left-2" : "-right-2"}
             `}
+            style={{
+              background: "radial-gradient(circle, #ffd54f 30%, #b8860b 100%)",
+              border: "2px solid #8b6914",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+            }}
           />
         ))}
       </div>
 
-      {/* ── Scoreboard ── */}
+      {/* ── Podium Stations (TV-show style) ── */}
       {activePlayers.length > 0 && (
-        <div className="flex gap-3 flex-wrap justify-center">
+        <div
+          className="relative z-10 flex justify-center items-end w-full pb-2"
+          style={{ gap: "clamp(8px, 3vw, 24px)" }}
+        >
           {activePlayers.map((player) => {
-            const card = SCORE_CARD[player.color];
+            const podium = PODIUM_CFG[player.color];
             const isActive = player.id === q.currentAnswerPlayerId;
             return (
               <div
                 key={player.id}
-                className="flex items-center gap-2.5 px-5 py-3 rounded-2xl border-2 shadow-lg transition-all duration-300 relative overflow-hidden"
-                style={{
-                  background: card.bg,
-                  borderColor: card.border,
-                  color: card.text,
-                  transform: isActive ? "scale(1.1)" : "scale(1)",
-                  boxShadow: isActive
-                    ? `0 0 0 3px var(--atk-gold), 0 8px 24px rgba(0,0,0,0.3)`
-                    : "0 4px 12px rgba(0,0,0,0.2)",
-                }}
+                className={`podium-station ${isActive ? "podium-active" : ""}`}
               >
-                {/* Shine */}
+                {/* Player name label above podium */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className="text-xs font-black text-center mb-1 px-2 py-0.5 rounded-full truncate"
                   style={{
-                    background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)",
+                    background: "rgba(0,0,0,0.4)",
+                    color: "#fff",
+                    maxWidth: "clamp(80px, 16vw, 140px)",
+                    fontSize: "clamp(9px, 1.5vw, 12px)",
                   }}
-                />
-                <span className="font-black text-sm relative">
-                  {player.name}
-                </span>
-                <span
-                  className="font-[family-name:var(--font-bebas-neue)] leading-none relative"
-                  style={{ fontSize: "clamp(32px, 5vw, 52px)" }}
                 >
-                  {player.score}
-                </span>
-                <span className="text-xs opacity-70 relative">枚</span>
+                  {player.name}
+                </div>
+
+                {/* Podium body */}
+                <div
+                  className="podium-body"
+                  style={{
+                    background: `linear-gradient(180deg, ${podium.bgLight} 0%, ${podium.bg} 50%, ${podium.bgDark} 100%)`,
+                    boxShadow: isActive
+                      ? `0 0 20px ${podium.glowColor}, 0 4px 12px rgba(0,0,0,0.3)`
+                      : "0 4px 12px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  {/* Shine overlay */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: "linear-gradient(90deg, rgba(255,255,255,0.15) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.08) 100%)",
+                      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)",
+                    }}
+                  />
+
+                  {/* Vertical light stripe accent */}
+                  <div
+                    className="absolute pointer-events-none"
+                    style={{
+                      top: "10%",
+                      bottom: "10%",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: "3px",
+                      background: "rgba(255,255,255,0.15)",
+                      borderRadius: "2px",
+                    }}
+                  />
+
+                  {/* Score screen */}
+                  <div className="podium-screen relative">
+                    <span className="podium-score">{player.score}</span>
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -253,7 +311,7 @@ function BoardQuestionDisplay({ q }: { q: QuestionState }) {
 
   return (
     <div
-      className="relative w-full rounded-2xl border-2 px-6 py-4 shadow-2xl"
+      className="relative w-full rounded-2xl border-2 px-6 py-4 shadow-2xl z-10"
       style={{
         maxWidth: "min(92vw, 860px)",
         background: "rgba(255,255,255,0.92)",
