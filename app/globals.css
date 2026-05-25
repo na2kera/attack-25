@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Show palette — warm orange/amber */
+  --atk-orange:       #f97316;
+  --atk-orange-dark:  #ea580c;
+  --atk-orange-deep:  #c2410c;
+  --atk-orange-light: #fed7aa;
+
+  /* Gold frame */
+  --atk-gold:         #fbbf24;
+  --atk-gold-dark:    #d97706;
+  --atk-gold-light:   #fef3c7;
+  --atk-gold-glow:    rgba(251, 191, 36, 0.4);
+
+  /* Panel colors — vivid, show-accurate */
+  --panel-red:        #e53935;
+  --panel-red-dark:   #b71c1c;
+  --panel-green:      #43a047;
+  --panel-green-dark: #2e7d32;
+  --panel-white:      #f0f0f0;
+  --panel-white-dark: #bdbdbd;
+  --panel-blue:       #1e88e5;
+  --panel-blue-dark:  #1565c0;
+  --panel-empty:      #e8dcc0;
+  --panel-empty-dark: #c5b898;
+
+  /* Control room (master screen) */
+  --ctrl-bg:      #1a0f00;
+  --ctrl-surface: #2d1a06;
+  --ctrl-card:    #3d2510;
+  --ctrl-border:  #5a3a18;
+  --ctrl-border2: #7a5228;
+  --ctrl-text:    #fde68a;
+  --ctrl-dim:     #b8892a;
+  --ctrl-muted:   #6b4d1a;
+
+  /* Semantic */
+  --atk-success: #43a047;
+  --atk-error:   #e53935;
+  --atk-warn:    #fbbf24;
 }
 
+/* ─── Theme ─────────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:    var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
+  --font-mono:    var(--font-geist-mono), monospace;
+  --font-display: var(--font-bebas-neue), "Bebas Neue", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ─── Base ───────────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
 }
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes atk-pop-in {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes atk-slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes atk-flicker {
+  0%, 88%, 100% { opacity: 1; }
+  92%           { opacity: 0.5; }
+}
+
+@keyframes atk-glow-pulse {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50%       { opacity: 0.85; filter: brightness(1.15); }
+}
+
+@keyframes atk-ring-ping {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+.animate-atk-pop-in   { animation: atk-pop-in   0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-atk-slide-up { animation: atk-slide-up 0.25s ease-out forwards; }
+.animate-atk-flicker  { animation: atk-flicker  2s ease-in-out infinite; }
+.animate-atk-pulse    { animation: atk-glow-pulse 1.8s ease-in-out infinite; }
+.animate-atk-ping     { animation: atk-ring-ping 1s ease-out infinite; }
