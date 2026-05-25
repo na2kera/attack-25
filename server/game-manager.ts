@@ -282,9 +282,15 @@ export class GameManager {
         q.currentAnswerPlayerId = nextEvent.playerId;
         // status は answering のまま
       } else {
+        // 他に回答者がいない場合、問題文を途中から再開する
         q.currentAnswerPlayerId = null;
-        q.status = "judged";
-        q.endedAt = Date.now();
+        q.status = "open";
+        if (q.typingStoppedAt && q.typingStartedAt) {
+          const now = Date.now();
+          const pauseDuration = now - q.typingStoppedAt;
+          q.typingStartedAt += pauseDuration;
+          q.typingStoppedAt = null;
+        }
       }
     } else {
       // invalid
