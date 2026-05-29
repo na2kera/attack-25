@@ -66,7 +66,8 @@ export type PressBuzzerResult =
         | "room_not_found"
         | "player_not_found"
         | "question_not_open"
-        | "already_pressed";
+        | "already_pressed"
+        | "player_penalized";
       message: string;
     };
 

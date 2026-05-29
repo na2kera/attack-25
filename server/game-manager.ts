@@ -113,6 +113,7 @@ export class GameManager {
       color,
       status: "active",
       score: 0,
+      penaltyRemainingTurns: 0,
       joinedAt: now,
       lastSeenAt: now,
     };
@@ -209,7 +210,8 @@ export class GameManager {
           | "room_not_found"
           | "player_not_found"
           | "question_not_open"
-          | "already_pressed";
+          | "already_pressed"
+          | "player_penalized";
       } {
     const gameState = this.rooms.get(roomId);
     if (!gameState) return { error: "room_not_found" };
@@ -218,6 +220,8 @@ export class GameManager {
       (p) => p.id === playerId && p.status === "active",
     );
     if (!player) return { error: "player_not_found" };
+
+    if (player.penaltyRemainingTurns > 0) return { error: "player_penalized" };
 
     const q = gameState.currentQuestion;
     if (q.status !== "open" && q.status !== "answering")
@@ -280,6 +284,10 @@ export class GameManager {
     } else if (result === "incorrect") {
       currentEvent.status = "incorrect";
 
+      // お手つきペナルティ: 2回休み
+      const penalizedPlayer = gameState.players.find((p) => p.id === playerId);
+      if (penalizedPlayer) penalizedPlayer.penaltyRemainingTurns = 2;
+
       // pending の中で最も order が小さいものを探す
       const nextEvent = q.buzzerEvents
         .filter((e) => e.status === "pending")
@@ -325,6 +333,13 @@ export class GameManager {
   nextQuestion(roomId: RoomId): GameState | { error: string } {
     const gameState = this.rooms.get(roomId);
     if (!gameState) return { error: "room_not_found" };
+
+    // ペナルティターン数をデクリメント
+    for (const player of gameState.players) {
+      if (player.penaltyRemainingTurns > 0) {
+        player.penaltyRemainingTurns--;
+      }
+    }
 
     gameState.currentQuestion = createInitialQuestionState();
     gameState.selectedPlayerIdForPanelOperation = null;
@@ -414,6 +429,7 @@ export class GameManager {
     gameState.selectedPlayerIdForPanelOperation = null;
     gameState.panelOperationMode = "set_owner";
     gameState.status = "waiting";
+    // ペナルティもリセット（プレイヤーがクリアされるので不要だが念のため）
     this.currentAnswers.delete(roomId);
     gameState.updatedAt = Date.now();
     return gameState;
