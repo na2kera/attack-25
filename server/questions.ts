@@ -253,6 +253,10 @@ export const QUESTIONS: Question[] = [
   },
 ];
 
-export function selectRandomQuestion(): Question {
-  return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+export function selectRandomQuestion(usedIds?: Set<string>): Question | null {
+  const available = usedIds
+    ? QUESTIONS.filter((q) => !usedIds.has(q.id))
+    : QUESTIONS;
+  if (available.length === 0) return null;
+  return available[Math.floor(Math.random() * available.length)];
 }
