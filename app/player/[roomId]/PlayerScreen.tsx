@@ -301,7 +301,7 @@ export function PlayerScreen({ roomId }: Props) {
   const myBuzzerEvent = q.buzzerEvents.find((e) => e.playerId === myPlayer.id);
   const isAnswering = q.currentAnswerPlayerId === myPlayer.id;
   const isPenalized = myPlayer.penaltyRemainingTurns > 0;
-  const canBuzz = q.status === "open" && !myBuzzerEvent && !isPenalized;
+  const canBuzz = (q.status === "open" || q.status === "answering") && !myBuzzerEvent && !isPenalized;
 
   // Status text
   let statusLabel = "待機中";
@@ -325,8 +325,8 @@ export function PlayerScreen({ roomId }: Props) {
       statusLabel = "押下済み";
       statusStyle = { bg: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.6)" };
     } else {
-      statusLabel = "回答権なし";
-      statusStyle = { bg: "rgba(0,0,0,0.15)", color: "rgba(255,255,255,0.5)" };
+      statusLabel = "早押し受付中";
+      statusStyle = { bg: "rgba(255,255,255,0.2)", color: "#fff" };
     }
   } else if (!isPenalized && q.status === "judged") {
     if (myBuzzerEvent?.status === "correct") {

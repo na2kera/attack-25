@@ -33,6 +33,7 @@ function recalculateScores(gameState: GameState): void {
 export class GameManager {
   private rooms = new Map<RoomId, GameState>();
   private currentAnswers = new Map<RoomId, string>();
+  private usedQuestionIds = new Map<RoomId, Set<string>>();
 
   createRoom(): { roomId: RoomId; gameState: GameState } {
     let roomId: string;
@@ -162,7 +163,13 @@ export class GameManager {
     const q = gameState.currentQuestion;
     if (q.status !== "waiting") return { error: "question_not_waiting" };
 
-    const question = selectRandomQuestion();
+    const usedIds = this.usedQuestionIds.get(roomId) ?? new Set<string>();
+    const question = selectRandomQuestion(usedIds);
+    if (!question) return { error: "no_more_questions" };
+
+    usedIds.add(question.id);
+    this.usedQuestionIds.set(roomId, usedIds);
+
     q.sourceQuestionId = question.id;
     q.text = question.text;
     q.status = "open";
@@ -217,7 +224,8 @@ export class GameManager {
     if (player.penaltyRemainingTurns > 0) return { error: "player_penalized" };
 
     const q = gameState.currentQuestion;
-    if (q.status !== "open") return { error: "question_not_open" };
+    if (q.status !== "open" && q.status !== "answering")
+      return { error: "question_not_open" };
 
     const alreadyPressed = q.buzzerEvents.some((e) => e.playerId === playerId);
     if (alreadyPressed) return { error: "already_pressed" };
@@ -290,9 +298,15 @@ export class GameManager {
         q.currentAnswerPlayerId = nextEvent.playerId;
         // status は answering のまま
       } else {
+        // 他に回答者がいない場合、問題文を途中から再開する
         q.currentAnswerPlayerId = null;
-        q.status = "judged";
-        q.endedAt = Date.now();
+        q.status = "open";
+        if (q.typingStoppedAt && q.typingStartedAt) {
+          const now = Date.now();
+          const pauseDuration = now - q.typingStoppedAt;
+          q.typingStartedAt += pauseDuration;
+          q.typingStoppedAt = null;
+        }
       }
     } else {
       // invalid

@@ -90,7 +90,7 @@ export type ClearPanelOwnerPayload = { roomId: RoomId; panelNumber: number };
 export type ResetAllPanelsPayload = { roomId: RoomId };
 export type ResetGamePayload = { roomId: RoomId };
 
-export type GameStateUpdatedPayload = { roomId: RoomId; gameState: GameState };
+export type GameStateUpdatedPayload = { roomId: RoomId; gameState: GameState; serverTime: number };
 export type QuestionAnswerUpdatedPayload = {
   roomId: RoomId;
   questionId: string | null;
