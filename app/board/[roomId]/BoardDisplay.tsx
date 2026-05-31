@@ -100,15 +100,22 @@ export function BoardDisplay({ roomId }: Props) {
   const panelOperationPlayer = gameState.players.find(
     (p) => p.id === gameState.selectedPlayerIdForPanelOperation,
   );
+  const isAttackChance = q.isAttackChance;
+  const isAcRemovalPending = gameState.attackChancePanelRemovalPending;
+
   const showValidMoves =
     gameState.panelOperationMode === "set_owner" &&
     gameState.selectedPlayerIdForPanelOperation !== null;
-  const validPanelNumbers = showValidMoves
-    ? getValidPlacementPanelNumbers(
-        gameState.panels,
-        gameState.selectedPlayerIdForPanelOperation!,
-      )
-    : undefined;
+  const validPanelNumbers = isAcRemovalPending
+    ? gameState.panels
+        .filter((p) => p.ownerPlayerId !== null)
+        .map((p) => p.number)
+    : showValidMoves
+      ? getValidPlacementPanelNumbers(
+          gameState.panels,
+          gameState.selectedPlayerIdForPanelOperation!,
+        )
+      : undefined;
   const placementRuleKind = showValidMoves
     ? getPlacementRuleKindForPlayer(
         gameState.panels,
@@ -128,20 +135,20 @@ export function BoardDisplay({ roomId }: Props) {
     string,
     { label: string; bg: string; color: string; anim?: string }
   > = {
-    waiting: { label: "待機中", bg: "rgba(0,0,0,0.25)", color: "#fff" },
+    waiting: { label: isAttackChance ? "アタックチャンス待機" : "待機中", bg: isAttackChance ? "rgba(139,0,0,0.5)" : "rgba(0,0,0,0.25)", color: "#fff" },
     open: {
-      label: "回答受付中",
-      bg: "#43a047",
+      label: isAttackChance ? "アタックチャンス！" : "回答受付中",
+      bg: isAttackChance ? "rgba(139,0,0,0.7)" : "#43a047",
       color: "#fff",
-      anim: "animate-atk-flicker",
+      anim: isAttackChance ? "animate-atk-ac-flash" : "animate-atk-flicker",
     },
     answering: {
-      label: "回答中",
-      bg: "var(--atk-gold)",
-      color: "#000",
+      label: isAttackChance ? "アタックチャンス — 回答中" : "回答中",
+      bg: isAttackChance ? "rgba(180,0,0,0.75)" : "var(--atk-gold)",
+      color: isAttackChance ? "#fff" : "#000",
       anim: "animate-atk-pulse",
     },
-    judged: { label: "判定済み", bg: "var(--panel-blue)", color: "#fff" },
+    judged: { label: isAcRemovalPending ? "AC — パネル消去フェーズ" : "判定済み", bg: isAcRemovalPending ? "rgba(139,0,0,0.7)" : "var(--panel-blue)", color: "#fff", anim: isAcRemovalPending ? "animate-atk-pulse" : undefined },
   };
   const sc = STATUS_CFG[q.status];
 
@@ -173,29 +180,69 @@ export function BoardDisplay({ roomId }: Props) {
         }}
       />
 
+      {/* ── Attack Chance dramatic overlay ── */}
+      {isAttackChance && (
+        <div
+          className="absolute inset-0 pointer-events-none animate-atk-ac-bg-pulse z-0"
+          style={{
+            background: "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(180,0,0,0.35) 0%, transparent 70%)",
+          }}
+        />
+      )}
+
       {/* ── Top section: Title + Status ── */}
       <div className="relative flex flex-col items-center gap-2 pt-4 z-10">
-        <h1
-          className="font-[family-name:var(--font-bebas-neue)] leading-none tracking-widest drop-shadow-lg"
-          style={{
-            fontSize: "clamp(36px, 6vw, 72px)",
-            color: "#fff",
-            textShadow:
-              "0 4px 12px rgba(0,0,0,0.35), 0 0 40px var(--atk-gold-glow)",
-            WebkitTextStroke: "1px rgba(0,0,0,0.1)",
-          }}
-        >
-          ATTACK{" "}
-          <span
+        {isAttackChance ? (
+          <div className="flex flex-col items-center gap-0">
+            <h1
+              className="font-[family-name:var(--font-bebas-neue)] leading-none tracking-widest drop-shadow-lg animate-atk-ac-entrance"
+              style={{
+                fontSize: "clamp(28px, 4.5vw, 54px)",
+                color: "#fff",
+                textShadow: "0 4px 12px rgba(0,0,0,0.35)",
+                WebkitTextStroke: "1px rgba(0,0,0,0.1)",
+              }}
+            >
+              ATTACK{" "}
+              <span style={{ color: "var(--atk-gold)", textShadow: "0 4px 12px rgba(0,0,0,0.4), 0 0 60px var(--atk-gold-glow)" }}>
+                25
+              </span>
+            </h1>
+            <p
+              className="font-[family-name:var(--font-bebas-neue)] tracking-[0.2em] animate-atk-ac-flash"
+              style={{
+                fontSize: "clamp(32px, 6vw, 80px)",
+                color: "#fff",
+                textShadow: "0 0 30px rgba(251,191,36,0.8), 0 4px 16px rgba(0,0,0,0.5)",
+                letterSpacing: "0.15em",
+              }}
+            >
+              {isAcRemovalPending ? "パネル消去フェーズ" : "アタックチャ〜ンス！"}
+            </p>
+          </div>
+        ) : (
+          <h1
+            className="font-[family-name:var(--font-bebas-neue)] leading-none tracking-widest drop-shadow-lg"
             style={{
-              color: "var(--atk-gold)",
+              fontSize: "clamp(36px, 6vw, 72px)",
+              color: "#fff",
               textShadow:
-                "0 4px 12px rgba(0,0,0,0.4), 0 0 60px var(--atk-gold-glow)",
+                "0 4px 12px rgba(0,0,0,0.35), 0 0 40px var(--atk-gold-glow)",
+              WebkitTextStroke: "1px rgba(0,0,0,0.1)",
             }}
           >
-            25
-          </span>
-        </h1>
+            ATTACK{" "}
+            <span
+              style={{
+                color: "var(--atk-gold)",
+                textShadow:
+                  "0 4px 12px rgba(0,0,0,0.4), 0 0 60px var(--atk-gold-glow)",
+              }}
+            >
+              25
+            </span>
+          </h1>
+        )}
 
         {/* Status + answerer row */}
         <div className="flex items-center gap-3 flex-wrap justify-center">
@@ -209,6 +256,12 @@ export function BoardDisplay({ roomId }: Props) {
             <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-white/90 text-gray-900 shadow-md animate-atk-slide-up">
               {currentAnswerer.name}&nbsp;
               <span className="font-normal text-gray-600">が回答中</span>
+            </span>
+          )}
+          {isAcRemovalPending && panelOperationPlayer && (
+            <span className="px-4 py-1.5 rounded-full text-sm font-bold shadow-md animate-atk-pulse"
+              style={{ background: "rgba(0,0,0,0.6)", border: "2px solid var(--atk-gold)", color: "var(--atk-gold)" }}>
+              {panelOperationPlayer.name} がパネルを消去
             </span>
           )}
         </div>
@@ -302,8 +355,25 @@ export function BoardDisplay({ roomId }: Props) {
         </div>
       )}
 
-      {/* ── Panel board with ornate gold frame ── */}
-      {showValidMoves && panelOperationPlayer && placementRuleKind && (
+      {/* ── Panel board info bar ── */}
+      {isAcRemovalPending && panelOperationPlayer ? (
+        <div
+          className="relative z-10 px-5 py-2.5 rounded-full text-center shadow-lg animate-atk-slide-up"
+          style={{
+            background: "rgba(80,0,0,0.75)",
+            border: "2px solid var(--atk-gold)",
+            maxWidth: "min(92vw, 580px)",
+          }}
+        >
+          <p
+            className="font-black text-white animate-atk-ac-flash"
+            style={{ fontSize: "clamp(14px, 2.2vw, 20px)" }}
+          >
+            {panelOperationPlayer.name}
+            <span className="font-bold text-white/80"> — 消去したいパネルを選んでください</span>
+          </p>
+        </div>
+      ) : showValidMoves && panelOperationPlayer && placementRuleKind ? (
         <div
           className="relative z-10 px-4 py-2 rounded-full text-center shadow-lg animate-atk-slide-up"
           style={{
@@ -331,7 +401,7 @@ export function BoardDisplay({ roomId }: Props) {
             )}
           </p>
         </div>
-      )}
+      ) : null}
 
       <div
         className="relative z-10"
@@ -358,6 +428,7 @@ export function BoardDisplay({ roomId }: Props) {
               players={gameState.players}
               interactive={false}
               validPanelNumbers={validPanelNumbers}
+              selectedPanelNumbers={isAcRemovalPending ? validPanelNumbers : undefined}
             />
           </div>
         </div>

@@ -254,6 +254,16 @@ export function registerSocketHandlers(
       callback({ ok: true, gameState: result });
     });
 
+    socket.on("skip_attack_chance_panel_removal", ({ roomId }, callback) => {
+      const result = gameManager.skipAttackChancePanelRemoval(roomId);
+      if ("error" in result) {
+        callback({ ok: false, error: result.error });
+        return;
+      }
+      broadcast(io, roomId, result);
+      callback({ ok: true, gameState: result });
+    });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     socket.on("set_panel_operation_mode" as any, ({ roomId, mode }: any) => {
       const result = gameManager.setPanelOperationMode(roomId, mode);

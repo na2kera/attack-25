@@ -298,14 +298,17 @@ export function PlayerScreen({ roomId }: Props) {
 
   const theme = PLAYER_THEME[myPlayer.color] ?? PLAYER_THEME.red;
   const q = gameState.currentQuestion;
+  const isAttackChance = q.isAttackChance;
   const myBuzzerEvent = q.buzzerEvents.find((e) => e.playerId === myPlayer.id);
   const isAnswering = q.currentAnswerPlayerId === myPlayer.id;
   const isPenalized = myPlayer.penaltyRemainingTurns > 0;
   const canBuzz = (q.status === "open" || q.status === "answering") && !myBuzzerEvent && !isPenalized;
 
   // Status text
-  let statusLabel = "待機中";
-  let statusStyle = { bg: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.6)" };
+  let statusLabel = isAttackChance ? "⚡ アタックチャンス！" : "待機中";
+  let statusStyle = isAttackChance
+    ? { bg: "rgba(180,0,0,0.55)", color: "#fff" }
+    : { bg: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.6)" };
   if (isPenalized) {
     statusLabel = `お手つき ${myPlayer.penaltyRemainingTurns}回休み`;
     statusStyle = { bg: "var(--atk-error)", color: "#fff" };
@@ -314,8 +317,10 @@ export function PlayerScreen({ roomId }: Props) {
       statusLabel = "押下済み";
       statusStyle = { bg: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.7)" };
     } else {
-      statusLabel = "回答受付中！";
-      statusStyle = { bg: "rgba(255,255,255,0.25)", color: "#fff" };
+      statusLabel = isAttackChance ? "⚡ アタックチャンス — 早押し！" : "回答受付中！";
+      statusStyle = isAttackChance
+        ? { bg: "rgba(180,0,0,0.65)", color: "#fff" }
+        : { bg: "rgba(255,255,255,0.25)", color: "#fff" };
     }
   } else if (q.status === "answering") {
     if (isAnswering) {
