@@ -32,7 +32,7 @@ function emitAnswerToMasters(
   answer: string | null,
 ): void {
   for (const [, socket] of io.sockets.sockets) {
-    if (socket.data.roomId === roomId && socket.data.role === "master") {
+    if (socket.data.roomId === roomId && (socket.data.role === "master" || socket.data.role === "board")) {
       socket.emit("question_answer_updated", {
         roomId,
         questionId: gameState.currentQuestion.sourceQuestionId,
@@ -90,6 +90,11 @@ export function registerSocketHandlers(
       socket.join(roomId);
       socket.data.roomId = roomId;
       socket.data.role = "board";
+      socket.emit("question_answer_updated", {
+        roomId,
+        questionId: gameState.currentQuestion.sourceQuestionId,
+        answer: gameManager.getCurrentAnswer(roomId),
+      });
       callback({ ok: true, gameState });
     });
 
