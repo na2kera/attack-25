@@ -67,6 +67,8 @@ export type QuestionState = {
   typingStoppedAt: number | null;
   typingSpeedMs: number;
   isAttackChance: boolean;
+  answerDeadline: number | null;
+  answerTimeRemainingMs: number | null;
 };
 
 export type GameState = {
@@ -82,6 +84,8 @@ export type GameState = {
   createdAt: number;
   updatedAt: number;
 };
+
+export const ANSWER_TIME_LIMIT_MS = 10_000;
 
 export const PLAYER_COLORS: PlayerColor[] = ["red", "green", "white", "blue"];
 
@@ -114,6 +118,8 @@ export function createInitialQuestionState(): QuestionState {
     typingStoppedAt: null,
     typingSpeedMs: 90,
     isAttackChance: false,
+    answerDeadline: null,
+    answerTimeRemainingMs: null,
   };
 }
 

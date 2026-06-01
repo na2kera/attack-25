@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { useQuestionDisplayText } from "@/hooks/useQuestionDisplayText";
+import { useAnswerTimer } from "@/hooks/useAnswerTimer";
 import { PanelGrid } from "@/app/components/PanelGrid";
 import type { QuestionState } from "@/types/game";
 import {
@@ -51,6 +52,9 @@ export function BoardDisplay({ roomId }: Props) {
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
+  const { secondsLeft, isTimeUp, isPaused } = useAnswerTimer(
+    gameState?.currentQuestion ?? null,
+  );
 
   useEffect(() => {
     if (!connected || joined) return;
@@ -262,6 +266,28 @@ export function BoardDisplay({ roomId }: Props) {
           >
             {sc.label}
           </span>
+          {secondsLeft != null && (
+            <span
+              className={`px-5 py-1.5 rounded-full text-sm font-black tracking-wide shadow-md${!isTimeUp && !isPaused && secondsLeft <= 3 ? " animate-atk-pulse" : ""}`}
+              style={{
+                background: isTimeUp
+                  ? "var(--atk-error)"
+                  : isPaused
+                    ? "rgba(0,0,0,0.4)"
+                    : "rgba(0,0,0,0.55)",
+                color: isTimeUp
+                  ? "#fff"
+                  : secondsLeft <= 3 && !isPaused
+                    ? "#ef5350"
+                    : "var(--atk-gold)",
+                border: isTimeUp
+                  ? "2px solid rgba(255,255,255,0.5)"
+                  : "2px solid var(--atk-gold)",
+              }}
+            >
+              {isTimeUp ? "終了" : `残り ${secondsLeft}秒`}
+            </span>
+          )}
           {currentAnswerer && (
             <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-white/90 text-gray-900 shadow-md animate-atk-slide-up">
               {currentAnswerer.name}&nbsp;

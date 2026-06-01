@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { usePlayerId } from "@/hooks/usePlayerId";
 import { useQuestionDisplayText } from "@/hooks/useQuestionDisplayText";
+import { useAnswerTimer } from "@/hooks/useAnswerTimer";
 import type { Player, QuestionState } from "@/types/game";
 
 type Props = { roomId: string };
@@ -82,6 +83,9 @@ export function PlayerScreen({ roomId }: Props) {
   const [nameInput, setNameInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [buzzed, setBuzzed] = useState(false);
+  const { secondsLeft, isTimeUp, isPaused } = useAnswerTimer(
+    gameState?.currentQuestion ?? null,
+  );
 
   const attemptJoin = useCallback(
     (name: string, existingPlayerId?: string) => {
@@ -399,6 +403,25 @@ export function PlayerScreen({ roomId }: Props) {
         >
           {statusLabel}
         </div>
+
+        {secondsLeft != null && (
+          <div
+            className={`px-5 py-1.5 rounded-full font-black text-sm tracking-wide shadow-md${!isTimeUp && !isPaused && secondsLeft <= 3 ? " animate-atk-pulse" : ""}`}
+            style={{
+              background: isTimeUp
+                ? "var(--atk-error)"
+                : isPaused
+                  ? "rgba(0,0,0,0.25)"
+                  : "rgba(0,0,0,0.3)",
+              color: isTimeUp ? "#fff" : secondsLeft <= 3 && !isPaused ? "#ef5350" : "#fff",
+              border: isTimeUp
+                ? "2px solid rgba(255,255,255,0.5)"
+                : "1px solid rgba(255,255,255,0.3)",
+            }}
+          >
+            {isTimeUp ? "終了" : `残り ${secondsLeft}秒`}
+          </div>
+        )}
 
         <PlayerQuestionDisplay q={q} />
 

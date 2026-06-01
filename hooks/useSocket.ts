@@ -16,6 +16,9 @@ function adjustQuestionTimestamps(gs: GameState, clockOffset: number): void {
   if (q.typingStoppedAt != null) {
     q.typingStoppedAt += clockOffset;
   }
+  if (q.answerDeadline != null) {
+    q.answerDeadline += clockOffset;
+  }
 }
 
 export function useSocket(roomId: string) {

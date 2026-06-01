@@ -6,6 +6,7 @@ import {
   RoomId,
   PanelOperationMode,
   PLAYER_NUMBER_TO_COLOR,
+  ANSWER_TIME_LIMIT_MS,
   createInitialPanels,
   createInitialQuestionState,
   generateId,
@@ -34,6 +35,86 @@ export class GameManager {
   private rooms = new Map<RoomId, GameState>();
   private currentAnswers = new Map<RoomId, string>();
   private usedQuestionIds = new Map<RoomId, Set<string>>();
+  private answerTimers = new Map<RoomId, ReturnType<typeof setTimeout>>();
+  private onTimerExpired: ((roomId: RoomId) => void) | null = null;
+
+  setTimerExpiredCallback(cb: (roomId: RoomId) => void): void {
+    this.onTimerExpired = cb;
+  }
+
+  private startAnswerTimer(roomId: RoomId, durationMs: number): void {
+    const existing = this.answerTimers.get(roomId);
+    if (existing) {
+      clearTimeout(existing);
+      this.answerTimers.delete(roomId);
+    }
+    const gameState = this.rooms.get(roomId);
+    if (!gameState) return;
+    const q = gameState.currentQuestion;
+    q.answerDeadline = Date.now() + durationMs;
+    q.answerTimeRemainingMs = null;
+    this.answerTimers.set(
+      roomId,
+      setTimeout(() => {
+        this.answerTimers.delete(roomId);
+        this.onTimerExpired?.(roomId);
+      }, durationMs),
+    );
+  }
+
+  private pauseAnswerTimer(roomId: RoomId): void {
+    const timer = this.answerTimers.get(roomId);
+    if (timer) {
+      clearTimeout(timer);
+      this.answerTimers.delete(roomId);
+    }
+    const gameState = this.rooms.get(roomId);
+    if (!gameState) return;
+    const q = gameState.currentQuestion;
+    if (q.answerDeadline == null) return;
+    const typingEndTime =
+      q.typingStartedAt != null
+        ? q.typingStartedAt + q.text.length * q.typingSpeedMs
+        : 0;
+    const now = Date.now();
+    q.answerTimeRemainingMs =
+      now >= typingEndTime
+        ? Math.max(0, q.answerDeadline - now)
+        : ANSWER_TIME_LIMIT_MS;
+    q.answerDeadline = null;
+  }
+
+  private resumeAnswerTimer(roomId: RoomId): void {
+    const gameState = this.rooms.get(roomId);
+    if (!gameState) return;
+    const q = gameState.currentQuestion;
+    if (q.answerTimeRemainingMs == null) return;
+    const now = Date.now();
+    let countdownStart: number;
+    if (q.typingStoppedAt == null && q.typingStartedAt != null) {
+      const typingEndTime = q.typingStartedAt + q.text.length * q.typingSpeedMs;
+      countdownStart = Math.max(now, typingEndTime);
+    } else {
+      countdownStart = now;
+    }
+    // remaining が 0 でも startAnswerTimer 経由で非同期に onTimerExpired を呼ぶ
+    // （同期呼び出しすると judgeAnswer 内で再入が起きるため）
+    const durationMs = countdownStart - now + q.answerTimeRemainingMs;
+    this.startAnswerTimer(roomId, durationMs);
+  }
+
+  private clearAnswerTimer(roomId: RoomId): void {
+    const timer = this.answerTimers.get(roomId);
+    if (timer) {
+      clearTimeout(timer);
+      this.answerTimers.delete(roomId);
+    }
+    const gameState = this.rooms.get(roomId);
+    if (!gameState) return;
+    const q = gameState.currentQuestion;
+    q.answerDeadline = null;
+    q.answerTimeRemainingMs = null;
+  }
 
   createRoom(): { roomId: RoomId; gameState: GameState } {
     let roomId: string;
@@ -179,6 +260,8 @@ export class GameManager {
     q.typingStartedAt = q.startedAt;
     q.typingStoppedAt = null;
     this.currentAnswers.set(roomId, question.answer);
+    const typingDurationMs = q.text.length * q.typingSpeedMs;
+    this.startAnswerTimer(roomId, typingDurationMs + ANSWER_TIME_LIMIT_MS);
     gameState.updatedAt = Date.now();
     return gameState;
   }
@@ -195,6 +278,7 @@ export class GameManager {
     if (q.status !== "open" && q.status !== "answering")
       return { error: "question_not_open" };
 
+    this.clearAnswerTimer(roomId);
     q.status = "waiting";
     q.endedAt = Date.now();
     q.typingStoppedAt = q.typingStoppedAt ?? q.endedAt;
@@ -251,6 +335,7 @@ export class GameManager {
       q.currentAnswerPlayerId = playerId;
       q.status = "answering";
       q.typingStoppedAt = buzzerEvent.pressedAt;
+      this.pauseAnswerTimer(roomId);
     }
 
     gameState.updatedAt = Date.now();
@@ -277,6 +362,7 @@ export class GameManager {
       q.currentAnswerPlayerId = null;
       q.status = "judged";
       q.endedAt = Date.now();
+      this.clearAnswerTimer(roomId);
 
       // 正解者をパネル操作の選択プレイヤーに設定
       gameState.selectedPlayerIdForPanelOperation = playerId;
@@ -298,7 +384,7 @@ export class GameManager {
       if (nextEvent) {
         nextEvent.status = "current";
         q.currentAnswerPlayerId = nextEvent.playerId;
-        // status は answering のまま
+        // status は answering のまま、タイマーも停止のまま
       } else {
         // 他に回答者がいない場合、問題文を途中から再開する
         q.currentAnswerPlayerId = null;
@@ -309,6 +395,7 @@ export class GameManager {
           q.typingStartedAt += pauseDuration;
           q.typingStoppedAt = null;
         }
+        this.resumeAnswerTimer(roomId);
       }
     } else {
       // invalid
@@ -321,10 +408,12 @@ export class GameManager {
       if (nextEvent) {
         nextEvent.status = "current";
         q.currentAnswerPlayerId = nextEvent.playerId;
+        // タイマーも停止のまま
       } else {
         q.currentAnswerPlayerId = null;
         // invalid の場合は open に戻す（再受付可能）
         q.status = "open";
+        this.resumeAnswerTimer(roomId);
       }
     }
 
@@ -335,6 +424,8 @@ export class GameManager {
   nextQuestion(roomId: RoomId): GameState | { error: string } {
     const gameState = this.rooms.get(roomId);
     if (!gameState) return { error: "room_not_found" };
+
+    this.clearAnswerTimer(roomId);
 
     // ペナルティターン数をデクリメント
     for (const player of gameState.players) {
@@ -475,6 +566,7 @@ export class GameManager {
     const gameState = this.rooms.get(roomId);
     if (!gameState) return { error: "room_not_found" };
 
+    this.clearAnswerTimer(roomId);
     gameState.players = [];
     gameState.panels = createInitialPanels();
     gameState.currentQuestion = createInitialQuestionState();

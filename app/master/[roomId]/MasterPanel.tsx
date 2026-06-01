@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { useQuestionDisplayText } from "@/hooks/useQuestionDisplayText";
+import { useAnswerTimer } from "@/hooks/useAnswerTimer";
 import { PanelGrid } from "@/app/components/PanelGrid";
 import { PlayerList } from "@/app/components/PlayerList";
 import { QrCode } from "@/app/components/QrCode";
@@ -21,6 +22,9 @@ export function MasterPanel({ roomId }: Props) {
   const [copied, setCopied] = useState<string | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
   const [panelError, setPanelError] = useState<string | null>(null);
+  const { secondsLeft, isTimeUp, isPaused } = useAnswerTimer(
+    gameState?.currentQuestion ?? null,
+  );
 
   useEffect(() => {
     if (!connected || joined) return;
@@ -375,6 +379,33 @@ export function MasterPanel({ roomId }: Props) {
                   />
                 )}
               </div>
+
+              {secondsLeft != null && (
+                <div className="flex items-center justify-center">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full${!isTimeUp && !isPaused && secondsLeft <= 3 ? " animate-atk-pulse" : ""}`}
+                    style={{
+                      background: isTimeUp
+                        ? "var(--atk-error)"
+                        : isPaused
+                          ? "var(--ctrl-card)"
+                          : secondsLeft <= 3
+                            ? "rgba(229,57,53,0.15)"
+                            : "var(--ctrl-card)",
+                      color: isTimeUp
+                        ? "#fff"
+                        : secondsLeft <= 3 && !isPaused
+                          ? "var(--atk-error)"
+                          : "var(--ctrl-dim)",
+                      border: isTimeUp
+                        ? "1px solid rgba(229,57,53,0.5)"
+                        : "1px solid var(--ctrl-border2)",
+                    }}
+                  >
+                    {isTimeUp ? "終了" : `残り ${secondsLeft}秒`}
+                  </span>
+                </div>
+              )}
 
               <MasterQuestionDisplay q={q} answer={currentAnswer} />
 
