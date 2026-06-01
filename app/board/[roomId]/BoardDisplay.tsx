@@ -305,91 +305,6 @@ export function BoardDisplay({ roomId }: Props) {
 
       <BoardQuestionDisplay q={q} answer={currentAnswer} />
 
-      {/* ── Buzzer press list ── */}
-      {q.buzzerEvents.length > 0 && (
-        <div
-          className="relative z-10 flex flex-wrap justify-center items-center gap-2 px-4 animate-atk-slide-up"
-          style={{ maxWidth: "min(92vw, 860px)" }}
-        >
-          {q.buzzerEvents
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((ev) => {
-              const player = activePlayers.find((p) => p.id === ev.playerId);
-              if (!player) return null;
-              const podium = PODIUM_CFG[player.color];
-              const elapsed = q.startedAt
-                ? ((ev.pressedAt - q.startedAt) / 1000).toFixed(2)
-                : "—";
-              const statusIcon =
-                ev.status === "current"
-                  ? "▶"
-                  : ev.status === "correct"
-                    ? "◎"
-                    : ev.status === "incorrect"
-                      ? "✗"
-                      : ev.status === "invalid"
-                        ? "—"
-                        : "";
-              return (
-                <div
-                  key={ev.id}
-                  className="flex items-center gap-2 rounded-full px-4 py-1.5 shadow-md"
-                  style={{
-                    background:
-                      ev.status === "current"
-                        ? "rgba(0,0,0,0.7)"
-                        : "rgba(0,0,0,0.5)",
-                    border:
-                      ev.status === "current"
-                        ? "2px solid var(--atk-gold)"
-                        : "1px solid rgba(255,255,255,0.15)",
-                  }}
-                >
-                  <span
-                    className="font-[family-name:var(--font-bebas-neue)] text-lg leading-none"
-                    style={{ color: "rgba(255,255,255,0.5)" }}
-                  >
-                    {ev.order}
-                  </span>
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ background: podium.bg }}
-                  />
-                  <span
-                    className="font-black text-sm text-white truncate"
-                    style={{ maxWidth: "100px" }}
-                  >
-                    {player.name}
-                  </span>
-                  <span
-                    className="font-mono text-xs font-bold"
-                    style={{ color: "var(--atk-gold)" }}
-                  >
-                    {elapsed}s
-                  </span>
-                  {statusIcon && (
-                    <span
-                      className="text-xs font-bold"
-                      style={{
-                        color:
-                          ev.status === "correct"
-                            ? "var(--atk-gold)"
-                            : ev.status === "incorrect"
-                              ? "#ef5350"
-                              : ev.status === "current"
-                                ? "var(--atk-gold)"
-                                : "rgba(255,255,255,0.4)",
-                      }}
-                    >
-                      {statusIcon}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-        </div>
-      )}
 
       {/* ── Panel board info bar ── */}
       {isAcRemovalPending && panelOperationPlayer ? (
@@ -526,6 +441,24 @@ export function BoardDisplay({ roomId }: Props) {
                 >
                   {player.name}
                 </div>
+
+                {/* Buzzer elapsed time */}
+                {(() => {
+                  const ev = q.buzzerEvents.find((e) => e.playerId === player.id);
+                  if (!ev || !q.startedAt) return null;
+                  const elapsed = ((ev.pressedAt - q.startedAt) / 1000).toFixed(2);
+                  return (
+                    <div
+                      className="font-mono font-bold text-center mb-1"
+                      style={{
+                        color: "var(--atk-gold)",
+                        fontSize: "clamp(9px, 1.3vw, 12px)",
+                      }}
+                    >
+                      {elapsed}s
+                    </div>
+                  );
+                })()}
 
                 {/* Podium body */}
                 <div
