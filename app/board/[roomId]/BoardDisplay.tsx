@@ -6,10 +6,7 @@ import { useQuestionDisplayText } from "@/hooks/useQuestionDisplayText";
 import { useAnswerTimer } from "@/hooks/useAnswerTimer";
 import { PanelGrid } from "@/app/components/PanelGrid";
 import type { QuestionState } from "@/types/game";
-import {
-  getPlacementRuleKindForPlayer,
-  getValidPlacementPanelNumbers,
-} from "@/types/panel-flip";
+import { getValidPlacementPanelNumbers } from "@/types/panel-flip";
 
 type Props = { roomId: string };
 
@@ -130,21 +127,6 @@ export function BoardDisplay({ roomId }: Props) {
           gameState.selectedPlayerIdForPanelOperation!,
         )
       : undefined;
-  const placementRuleKind = showValidMoves
-    ? getPlacementRuleKindForPlayer(
-        gameState.panels,
-        gameState.selectedPlayerIdForPanelOperation!,
-      )
-    : null;
-  const PLACEMENT_RULE_LABEL: Record<
-    NonNullable<typeof placementRuleKind>,
-    string
-  > = {
-    first_move: "初手 — 13 のみ",
-    sandwich_required: "挟み必須",
-    adjacent_only: "隣接のみ",
-  };
-
   const STATUS_CFG: Record<
     string,
     { label: string; bg: string; color: string; anim?: string }
@@ -407,34 +389,6 @@ export function BoardDisplay({ roomId }: Props) {
           >
             {panelOperationPlayer.name}
             <span className="font-bold text-white/80"> — 消去したいパネルを選んでください</span>
-          </p>
-        </div>
-      ) : showValidMoves && panelOperationPlayer && placementRuleKind ? (
-        <div
-          className="relative z-10 px-4 py-2 rounded-full text-center shadow-lg animate-atk-slide-up"
-          style={{
-            background: "rgba(0,0,0,0.55)",
-            border: "2px solid var(--atk-gold)",
-            maxWidth: "min(92vw, 520px)",
-          }}
-        >
-          <p
-            className="font-black text-white"
-            style={{ fontSize: "clamp(14px, 2.2vw, 20px)" }}
-          >
-            {panelOperationPlayer.name}
-            <span className="font-bold text-white/80"> — 取得可: </span>
-            <span style={{ color: "var(--atk-gold)" }}>
-              {PLACEMENT_RULE_LABEL[placementRuleKind]}
-            </span>
-            {validPanelNumbers && validPanelNumbers.length > 0 ? (
-              <span className="font-bold text-white/90">
-                {" "}
-                ({validPanelNumbers.join(", ")})
-              </span>
-            ) : (
-              <span className="font-bold text-white/70"> (合法手なし)</span>
-            )}
           </p>
         </div>
       ) : null}
