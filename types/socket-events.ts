@@ -90,6 +90,7 @@ export type ClearPanelOwnerPayload = { roomId: RoomId; panelNumber: number };
 export type ResetAllPanelsPayload = { roomId: RoomId };
 export type ResetGamePayload = { roomId: RoomId };
 export type SkipAttackChancePanelRemovalPayload = { roomId: RoomId };
+export type ResetPlayerPenaltyPayload = { roomId: RoomId; playerId: PlayerId };
 
 export type GameStateUpdatedPayload = { roomId: RoomId; gameState: GameState; serverTime: number };
 export type QuestionAnswerUpdatedPayload = {
@@ -173,6 +174,11 @@ export type ClientToServerEvents = {
 
   skip_attack_chance_panel_removal: (
     payload: SkipAttackChancePanelRemovalPayload,
+    callback: SocketCallback<ActionResult>,
+  ) => void;
+
+  reset_player_penalty: (
+    payload: ResetPlayerPenaltyPayload,
     callback: SocketCallback<ActionResult>,
   ) => void;
 };
