@@ -50,6 +50,7 @@ export function BoardDisplay({ roomId }: Props) {
   const { socket, gameState, setGameState, connected } = useSocket(roomId);
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
 
   useEffect(() => {
     if (!connected || joined) return;
@@ -67,6 +68,15 @@ export function BoardDisplay({ roomId }: Props) {
       socket.off("room_not_found");
     };
   }, [socket]);
+
+  useEffect(() => {
+    socket.on("question_answer_updated", ({ roomId: updatedRoomId, answer }) => {
+      if (updatedRoomId === roomId) setCurrentAnswer(answer);
+    });
+    return () => {
+      socket.off("question_answer_updated");
+    };
+  }, [roomId, socket]);
 
   /* ── States ── */
   if (error) {
@@ -267,7 +277,7 @@ export function BoardDisplay({ roomId }: Props) {
         </div>
       </div>
 
-      <BoardQuestionDisplay q={q} />
+      <BoardQuestionDisplay q={q} answer={currentAnswer} />
 
       {/* ── Buzzer press list ── */}
       {q.buzzerEvents.length > 0 && (
@@ -538,8 +548,18 @@ export function BoardDisplay({ roomId }: Props) {
   );
 }
 
-function BoardQuestionDisplay({ q }: { q: QuestionState }) {
+function BoardQuestionDisplay({
+  q,
+  answer,
+}: {
+  q: QuestionState;
+  answer: string | null;
+}) {
   const { displayText, isTyping, isStopped } = useQuestionDisplayText(q);
+  const showAnswer =
+    Boolean(answer) &&
+    Boolean(q.text) &&
+    (q.status === "waiting" || q.status === "judged");
 
   return (
     <div
@@ -567,6 +587,25 @@ function BoardQuestionDisplay({ q }: { q: QuestionState }) {
         {displayText || "問題を待っています"}
         {isTyping && <span className="animate-atk-pulse">▌</span>}
       </p>
+      {showAnswer && (
+        <div
+          className="mt-3 pt-3 border-t"
+          style={{ borderColor: "rgba(0,0,0,0.1)" }}
+        >
+          <p
+            className="text-xs font-black tracking-[0.3em] uppercase"
+            style={{ color: "var(--atk-gold)" }}
+          >
+            Answer
+          </p>
+          <p
+            className="font-black leading-relaxed text-gray-950 mt-0.5"
+            style={{ fontSize: "clamp(24px, 3.5vw, 42px)" }}
+          >
+            {answer}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
