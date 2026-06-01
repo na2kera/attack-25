@@ -50,6 +50,7 @@ export class GameManager {
       currentQuestion: createInitialQuestionState(),
       selectedPlayerIdForPanelOperation: null,
       panelOperationMode: "set_owner",
+      attackChancePanelRemovalPending: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -341,8 +342,16 @@ export class GameManager {
       }
     }
 
-    gameState.currentQuestion = createInitialQuestionState();
+    // 20枚以上埋まっていたら次の問題はアタックチャンス
+    const filledPanelCount = gameState.panels.filter(
+      (p) => p.ownerPlayerId !== null,
+    ).length;
+    const newQuestion = createInitialQuestionState();
+    newQuestion.isAttackChance = filledPanelCount >= 20;
+
+    gameState.currentQuestion = newQuestion;
     gameState.selectedPlayerIdForPanelOperation = null;
+    gameState.attackChancePanelRemovalPending = false;
     this.currentAnswers.delete(roomId);
     gameState.updatedAt = Date.now();
     return gameState;
@@ -384,6 +393,17 @@ export class GameManager {
     }
 
     recalculateScores(gameState);
+
+    // アタックチャンス: 正解者がパネルを置いたら消去フェーズへ移行
+    if (
+      gameState.currentQuestion.isAttackChance &&
+      gameState.currentQuestion.status === "judged" &&
+      !gameState.attackChancePanelRemovalPending
+    ) {
+      gameState.attackChancePanelRemovalPending = true;
+      gameState.panelOperationMode = "clear_owner";
+    }
+
     gameState.updatedAt = Date.now();
     return gameState;
   }
@@ -399,8 +419,34 @@ export class GameManager {
     const panel = gameState.panels.find((p) => p.number === panelNumber);
     if (!panel) return { error: "panel_not_found" };
 
+    // アタックチャンス消去フェーズ: 所有者がいるパネルのみ消去可
+    if (gameState.attackChancePanelRemovalPending && panel.ownerPlayerId === null) {
+      return { error: "panel_already_empty" };
+    }
+
     panel.ownerPlayerId = null;
     recalculateScores(gameState);
+
+    // アタックチャンス消去フェーズ完了
+    if (gameState.attackChancePanelRemovalPending) {
+      gameState.attackChancePanelRemovalPending = false;
+      gameState.selectedPlayerIdForPanelOperation = null;
+      gameState.panelOperationMode = "set_owner";
+    }
+
+    gameState.updatedAt = Date.now();
+    return gameState;
+  }
+
+  skipAttackChancePanelRemoval(roomId: RoomId): GameState | { error: string } {
+    const gameState = this.rooms.get(roomId);
+    if (!gameState) return { error: "room_not_found" };
+    if (!gameState.attackChancePanelRemovalPending)
+      return { error: "not_in_attack_chance_removal" };
+
+    gameState.attackChancePanelRemovalPending = false;
+    gameState.selectedPlayerIdForPanelOperation = null;
+    gameState.panelOperationMode = "set_owner";
     gameState.updatedAt = Date.now();
     return gameState;
   }
@@ -428,6 +474,7 @@ export class GameManager {
     gameState.currentQuestion = createInitialQuestionState();
     gameState.selectedPlayerIdForPanelOperation = null;
     gameState.panelOperationMode = "set_owner";
+    gameState.attackChancePanelRemovalPending = false;
     gameState.status = "waiting";
     // ペナルティもリセット（プレイヤーがクリアされるので不要だが念のため）
     this.currentAnswers.delete(roomId);

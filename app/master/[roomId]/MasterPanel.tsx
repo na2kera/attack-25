@@ -114,9 +114,17 @@ export function MasterPanel({ roomId }: Props) {
     (p) => p.id === q.currentAnswerPlayerId,
   );
 
+  const isAttackChance = q.isAttackChance;
+  const isAcRemovalPending = gameState.attackChancePanelRemovalPending;
   const isSetOwnerMode = gameState.panelOperationMode === "set_owner";
-  const validPanelNumbers =
-    isSetOwnerMode && gameState.selectedPlayerIdForPanelOperation
+  const acRemovalValidPanels = isAcRemovalPending
+    ? gameState.panels
+        .filter((p) => p.ownerPlayerId !== null)
+        .map((p) => p.number)
+    : undefined;
+  const validPanelNumbers = isAcRemovalPending
+    ? acRemovalValidPanels
+    : isSetOwnerMode && gameState.selectedPlayerIdForPanelOperation
       ? getValidPlacementPanelNumbers(
           gameState.panels,
           gameState.selectedPlayerIdForPanelOperation,
@@ -148,6 +156,10 @@ export function MasterPanel({ roomId }: Props) {
         playerId: gameState.selectedPlayerIdForPanelOperation,
       });
     }
+  };
+
+  const handleSkipAcRemoval = () => {
+    emit("skip_attack_chance_panel_removal", { roomId });
   };
 
   const Q_STATUS: Record<string, { label: string; bg: string; color: string }> =
@@ -308,9 +320,32 @@ export function MasterPanel({ roomId }: Props) {
             <Card
               title="問題進行"
               badge={
-                <StatusBadge label={qs.label} bg={qs.bg} color={qs.color} />
+                isAttackChance ? (
+                  <span
+                    className="text-xs font-black px-2.5 py-1 rounded-full animate-atk-pulse"
+                    style={{ background: "var(--atk-error)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)" }}
+                  >
+                    ⚡ アタックチャンス
+                  </span>
+                ) : (
+                  <StatusBadge label={qs.label} bg={qs.bg} color={qs.color} />
+                )
               }
             >
+              {isAttackChance && (
+                <div
+                  className="rounded-xl px-3 py-2 text-center font-black text-sm animate-atk-pulse"
+                  style={{
+                    background: "rgba(180,0,0,0.15)",
+                    border: "1px solid rgba(180,0,0,0.4)",
+                    color: "var(--atk-error)",
+                  }}
+                >
+                  {isAcRemovalPending
+                    ? "⚡ パネル消去フェーズ — パネルを1枚クリックして消去"
+                    : "⚡ アタックチャンス問題 — 正解者は+1枚 & パネル消去権獲得"}
+                </div>
+              )}
               <div className="flex gap-2">
                 {q.status === "waiting" && (
                   <Btn
@@ -330,7 +365,7 @@ export function MasterPanel({ roomId }: Props) {
                     onClick={() => emit("stop_question", { roomId })}
                   />
                 )}
-                {(q.status === "judged" || q.status === "waiting") && (
+                {(q.status === "judged" || q.status === "waiting") && !isAcRemovalPending && (
                   <Btn
                     label="▷ 次の問題へ"
                     bg="var(--panel-blue)"
@@ -478,6 +513,38 @@ export function MasterPanel({ roomId }: Props) {
           <div className="space-y-4">
             {/* Panel operations */}
             <Card title="パネル操作">
+              {/* AC removal phase UI */}
+              {isAcRemovalPending ? (
+                <div className="space-y-2">
+                  <div
+                    className="rounded-xl px-3 py-2.5 text-center font-black text-sm animate-atk-pulse"
+                    style={{
+                      background: "rgba(180,0,0,0.18)",
+                      border: "2px solid rgba(180,0,0,0.5)",
+                      color: "var(--atk-error)",
+                    }}
+                  >
+                    ⚡ AC消去フェーズ: パネルをクリックして消去
+                  </div>
+                  {selectedPlayer && (
+                    <p className="text-xs text-center font-bold" style={{ color: "var(--atk-gold)" }}>
+                      消去権: {selectedPlayer.name}
+                    </p>
+                  )}
+                  <button
+                    className="w-full py-1.5 text-xs font-bold rounded-lg border transition-all hover:brightness-110 active:scale-95"
+                    style={{
+                      background: "var(--ctrl-card)",
+                      borderColor: "var(--ctrl-border2)",
+                      color: "var(--ctrl-dim)",
+                    }}
+                    onClick={handleSkipAcRemoval}
+                  >
+                    消去をスキップ
+                  </button>
+                </div>
+              ) : (
+              <>
               {/* Mode tabs */}
               <div
                 className="flex gap-1 p-1 rounded-lg"
@@ -510,9 +577,11 @@ export function MasterPanel({ roomId }: Props) {
                   </button>
                 ))}
               </div>
+              </>
+              )}
 
               {/* Player selection */}
-              {gameState.panelOperationMode === "set_owner" && (
+              {!isAcRemovalPending && gameState.panelOperationMode === "set_owner" && (
                 <div className="space-y-2 mt-1">
                   <p className="text-xs" style={{ color: "var(--ctrl-dim)" }}>
                     操作プレイヤー:
@@ -626,6 +695,7 @@ export function MasterPanel({ roomId }: Props) {
                     onPanelClick={handlePanelClick}
                     interactive={true}
                     validPanelNumbers={validPanelNumbers}
+                    selectedPanelNumbers={isAcRemovalPending ? acRemovalValidPanels : undefined}
                   />
                 </div>
               </div>

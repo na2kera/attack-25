@@ -66,6 +66,7 @@ export type QuestionState = {
   typingStartedAt: number | null;
   typingStoppedAt: number | null;
   typingSpeedMs: number;
+  isAttackChance: boolean;
 };
 
 export type GameState = {
@@ -76,6 +77,7 @@ export type GameState = {
   currentQuestion: QuestionState;
   selectedPlayerIdForPanelOperation: PlayerId | null;
   panelOperationMode: PanelOperationMode;
+  attackChancePanelRemovalPending: boolean;
   createdAt: number;
   updatedAt: number;
 };
@@ -110,6 +112,7 @@ export function createInitialQuestionState(): QuestionState {
     typingStartedAt: null,
     typingStoppedAt: null,
     typingSpeedMs: 90,
+    isAttackChance: false,
   };
 }
 

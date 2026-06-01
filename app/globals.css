@@ -95,6 +95,23 @@ body {
 .animate-atk-pulse    { animation: atk-glow-pulse 1.8s ease-in-out infinite; }
 .animate-atk-ping     { animation: atk-ring-ping 1s ease-out infinite; }
 
+@keyframes atk-ac-entrance {
+  0%   { transform: scale(1.6) rotate(-3deg); opacity: 0; }
+  50%  { transform: scale(0.96) rotate(0.5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes atk-ac-flash {
+  0%, 100% { opacity: 1; text-shadow: 0 0 30px rgba(251,191,36,0.8), 0 4px 16px rgba(0,0,0,0.5); }
+  50%      { opacity: 0.85; text-shadow: 0 0 60px rgba(251,191,36,1), 0 4px 24px rgba(0,0,0,0.6); }
+}
+@keyframes atk-ac-bg-pulse {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.3; }
+}
+.animate-atk-ac-entrance { animation: atk-ac-entrance 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-atk-ac-flash    { animation: atk-ac-flash 1.5s ease-in-out infinite; }
+.animate-atk-ac-bg-pulse { animation: atk-ac-bg-pulse 1.5s ease-in-out infinite; }
+
 /* ─── Podium Station ──────────────────────────────────────── */
 .podium-station {
   display: flex;
