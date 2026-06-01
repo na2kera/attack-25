@@ -78,6 +78,7 @@ export type GameState = {
   selectedPlayerIdForPanelOperation: PlayerId | null;
   panelOperationMode: PanelOperationMode;
   attackChancePanelRemovalPending: boolean;
+  attackChanceUsed: boolean;
   createdAt: number;
   updatedAt: number;
 };
