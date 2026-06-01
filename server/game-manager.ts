@@ -499,6 +499,8 @@ export class GameManager {
     ) {
       gameState.attackChancePanelRemovalPending = true;
       gameState.panelOperationMode = "clear_owner";
+    } else {
+      gameState.selectedPlayerIdForPanelOperation = null;
     }
 
     gameState.updatedAt = Date.now();
