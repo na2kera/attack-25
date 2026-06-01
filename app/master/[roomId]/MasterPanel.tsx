@@ -313,6 +313,7 @@ export function MasterPanel({ roomId }: Props) {
                 players={gameState.players}
                 currentAnswerPlayerId={q.currentAnswerPlayerId}
                 correctPlayerId={q.correctPlayerId}
+                onResetPenalty={(playerId) => emit("reset_player_penalty", { roomId, playerId })}
               />
             </Card>
 

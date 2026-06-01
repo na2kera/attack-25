@@ -488,6 +488,16 @@ export class GameManager {
     return gameState;
   }
 
+  resetPlayerPenalty(roomId: RoomId, playerId: PlayerId): GameState | { error: string } {
+    const gameState = this.rooms.get(roomId);
+    if (!gameState) return { error: "room_not_found" };
+    const player = gameState.players.find((p) => p.id === playerId);
+    if (!player) return { error: "player_not_found" };
+    player.penaltyRemainingTurns = 0;
+    gameState.updatedAt = Date.now();
+    return gameState;
+  }
+
   setPanelOperationMode(
     roomId: RoomId,
     mode: PanelOperationMode,

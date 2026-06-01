@@ -15,9 +15,10 @@ type Props = {
   players: Player[];
   currentAnswerPlayerId?: string | null;
   correctPlayerId?: string | null;
+  onResetPenalty?: (playerId: string) => void;
 };
 
-export function PlayerList({ players, currentAnswerPlayerId, correctPlayerId }: Props) {
+export function PlayerList({ players, currentAnswerPlayerId, correctPlayerId, onResetPenalty }: Props) {
   const active = players.filter((p) => p.status === "active");
   if (active.length === 0) {
     return (
@@ -102,16 +103,32 @@ export function PlayerList({ players, currentAnswerPlayerId, correctPlayerId }: 
               </span>
             )}
             {isPenalized && !isAnswering && !isCorrect && (
-              <span
-                className="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0"
-                style={{
-                  background: "var(--atk-error)",
-                  borderColor: "var(--panel-red-dark)",
-                  color: "#fff",
-                }}
-              >
-                {player.penaltyRemainingTurns}回休み
-              </span>
+              <div className="flex items-center gap-1 shrink-0">
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded border"
+                  style={{
+                    background: "var(--atk-error)",
+                    borderColor: "var(--panel-red-dark)",
+                    color: "#fff",
+                  }}
+                >
+                  {player.penaltyRemainingTurns}回休み
+                </span>
+                {onResetPenalty && (
+                  <button
+                    className="text-[10px] font-bold w-4 h-4 rounded flex items-center justify-center leading-none transition-all hover:brightness-110 active:scale-95"
+                    style={{
+                      background: "var(--atk-error)",
+                      borderColor: "var(--panel-red-dark)",
+                      color: "#fff",
+                      border: "1px solid var(--panel-red-dark)",
+                    }}
+                    onClick={() => onResetPenalty(player.id)}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             )}
           </div>
         );
