@@ -51,6 +51,7 @@ export class GameManager {
       selectedPlayerIdForPanelOperation: null,
       panelOperationMode: "set_owner",
       attackChancePanelRemovalPending: false,
+      attackChanceUsed: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -342,12 +343,17 @@ export class GameManager {
       }
     }
 
-    // 20枚以上埋まっていたら次の問題はアタックチャンス
+    // 20枚以上埋まっていたら次の問題はアタックチャンス（1ゲーム中1回のみ）
     const filledPanelCount = gameState.panels.filter(
       (p) => p.ownerPlayerId !== null,
     ).length;
     const newQuestion = createInitialQuestionState();
-    newQuestion.isAttackChance = filledPanelCount >= 20;
+    const shouldActivateAttackChance =
+      filledPanelCount >= 20 && !gameState.attackChanceUsed;
+    newQuestion.isAttackChance = shouldActivateAttackChance;
+    if (shouldActivateAttackChance) {
+      gameState.attackChanceUsed = true;
+    }
 
     gameState.currentQuestion = newQuestion;
     gameState.selectedPlayerIdForPanelOperation = null;
