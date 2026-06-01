@@ -46,6 +46,18 @@ export function registerSocketHandlers(
   io: IoType,
   gameManager: GameManager,
 ): void {
+  gameManager.setTimerExpiredCallback((roomId) => {
+    const result = gameManager.stopQuestion(roomId);
+    if (!("error" in result)) {
+      // stopQuestion は clearAnswerTimer で deadline を null にするが、
+      // クライアントに「終了」を表示させるため期限切れの deadline を復元する。
+      // nextQuestion / resetGame 時に改めてクリアされる。
+      result.currentQuestion.answerDeadline = Date.now();
+      broadcast(io, roomId, result);
+      emitAnswerToMasters(io, roomId, result, gameManager.getCurrentAnswer(roomId));
+    }
+  });
+
   io.on("connection", (socket: SocketType) => {
     socket.on("create_room", (_payload, callback) => {
       const { roomId, gameState } = gameManager.createRoom();
