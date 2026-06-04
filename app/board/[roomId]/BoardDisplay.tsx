@@ -150,7 +150,7 @@ export function BoardDisplay({ roomId }: Props) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-between relative overflow-hidden"
+      className="h-screen flex flex-col items-center relative overflow-hidden"
       style={{
         background: `radial-gradient(ellipse 120% 80% at 50% 100%, var(--atk-orange-deep) 0%, var(--atk-orange) 35%, var(--atk-orange-light) 80%)`,
       }}
@@ -187,7 +187,7 @@ export function BoardDisplay({ roomId }: Props) {
       )}
 
       {/* ── Top section: Title + Status ── */}
-      <div className="relative flex flex-col items-center gap-2 pt-4 z-10">
+      <div className="relative flex flex-col items-center gap-2 pt-4 z-10 shrink-0">
         {isAttackChance ? (
           <div className="flex flex-col items-center gap-0">
             <h1
@@ -285,13 +285,15 @@ export function BoardDisplay({ roomId }: Props) {
         </div>
       </div>
 
-      <BoardQuestionDisplay q={q} answer={currentAnswer} />
+      <div className="flex-1 min-h-0 w-full flex items-center justify-center z-10 px-4 py-2">
+        <BoardQuestionDisplay q={q} answer={currentAnswer} />
+      </div>
 
 
       {/* ── Panel board info bar ── */}
       {isAcRemovalPending && panelOperationPlayer ? (
         <div
-          className="relative z-10 px-5 py-2.5 rounded-full text-center shadow-lg animate-atk-slide-up"
+          className="relative z-10 px-5 py-2.5 rounded-full text-center shadow-lg animate-atk-slide-up shrink-0"
           style={{
             background: "rgba(80,0,0,0.75)",
             border: "2px solid var(--atk-gold)",
@@ -309,7 +311,7 @@ export function BoardDisplay({ roomId }: Props) {
       ) : null}
 
       <div
-        className="relative z-10"
+        className="relative z-10 shrink-0"
         style={{
           width: "min(88vw, 520px)",
           padding: "6px",
@@ -358,7 +360,7 @@ export function BoardDisplay({ roomId }: Props) {
       {/* ── Podium Stations (TV-show style) ── */}
       {activePlayers.length > 0 && (
         <div
-          className="relative z-10 flex justify-center items-end w-full pb-2"
+          className="relative z-10 flex justify-center items-end w-full pb-2 shrink-0"
           style={{ gap: "clamp(8px, 3vw, 24px)" }}
         >
           {activePlayers.map((player) => {
@@ -494,8 +496,8 @@ function BoardQuestionDisplay({
         )}
       </div>
       <p
-        className="min-h-16 font-black leading-relaxed text-gray-950 whitespace-pre-wrap"
-        style={{ fontSize: "clamp(22px, 3.2vw, 38px)" }}
+        className="font-black leading-relaxed text-gray-950 whitespace-pre-wrap"
+        style={{ fontSize: "clamp(13px, min(3.2vw, 2.8vh), 34px)" }}
       >
         {displayText || "問題を待っています"}
         {isTyping && <span className="animate-atk-pulse">▌</span>}
@@ -513,7 +515,7 @@ function BoardQuestionDisplay({
           </p>
           <p
             className="font-black leading-relaxed text-gray-950 mt-0.5"
-            style={{ fontSize: "clamp(24px, 3.5vw, 42px)" }}
+            style={{ fontSize: "clamp(14px, min(3.5vw, 3vh), 38px)" }}
           >
             {answer}
           </p>
