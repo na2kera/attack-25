@@ -381,7 +381,7 @@ export function BoardDisplay({ roomId }: Props) {
             </span>
           )}
           {currentAnswerer && (
-            <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-white/90 text-gray-900 shadow-md animate-atk-slide-up">
+            <span className="px-8 py-3 rounded-full text-3xl font-bold bg-white/90 text-gray-900 shadow-md animate-atk-slide-up">
               {currentAnswerer.name}&nbsp;
               <span className="font-normal text-gray-600">が回答中</span>
             </span>
