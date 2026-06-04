@@ -297,6 +297,91 @@ export function PlayerScreen({ roomId }: Props) {
     );
   }
 
+  /* ── Finished ── */
+  if (gameState?.status === "finished" && myPlayer) {
+    const ranked = [...gameState.players]
+      .filter((p) => p.status === "active")
+      .sort((a, b) => b.score - a.score);
+    const myRank = ranked.findIndex((p) => p.id === myPlayer.id) + 1;
+    const theme = PLAYER_THEME[myPlayer.color] ?? PLAYER_THEME.red;
+    const rankLabel = ["", "1st", "2nd", "3rd", "4th"][myRank] ?? `${myRank}th`;
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center gap-6 p-8"
+        style={{ background: theme.bgGrad }}
+      >
+        <h1
+          className="font-[family-name:var(--font-bebas-neue)] leading-none tracking-widest"
+          style={{
+            fontSize: "clamp(48px, 14vw, 80px)",
+            color: "#fff",
+            textShadow: "0 4px 16px rgba(0,0,0,0.25)",
+          }}
+        >
+          GAME SET
+        </h1>
+        <div
+          className="px-8 py-5 rounded-3xl text-center shadow-xl w-full max-w-xs"
+          style={{
+            background: "rgba(255,255,255,0.15)",
+            border: "2px solid rgba(255,255,255,0.3)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <p className="text-white/70 font-bold text-xs tracking-widest uppercase mb-1">
+            Your Rank
+          </p>
+          <p
+            className="font-[family-name:var(--font-bebas-neue)] leading-none text-white"
+            style={{ fontSize: "clamp(56px, 16vw, 96px)" }}
+          >
+            {rankLabel}
+          </p>
+          <p className="text-white/80 font-black text-xl mt-1">
+            {myPlayer.score} パネル
+          </p>
+        </div>
+        <div className="w-full max-w-xs space-y-2">
+          {ranked.map((player, i) => (
+            <div
+              key={player.id}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-2xl"
+              style={{
+                background:
+                  player.id === myPlayer.id
+                    ? "rgba(255,255,255,0.25)"
+                    : "rgba(255,255,255,0.1)",
+                border:
+                  player.id === myPlayer.id
+                    ? "2px solid rgba(255,255,255,0.5)"
+                    : "1px solid rgba(255,255,255,0.15)",
+              }}
+            >
+              <span
+                className="font-[family-name:var(--font-bebas-neue)] text-2xl leading-none w-6 text-center text-white/60"
+              >
+                {i + 1}
+              </span>
+              <span className="flex-1 font-black text-white truncate">
+                {player.name}
+              </span>
+              <span className="font-[family-name:var(--font-bebas-neue)] text-xl text-white">
+                {player.score}
+              </span>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={handleLeave}
+          className="text-xs transition-opacity hover:opacity-80 mt-4"
+          style={{ color: "rgba(255,255,255,0.45)" }}
+        >
+          退出する
+        </button>
+      </div>
+    );
+  }
+
   /* ── Game screen ── */
   if (!myPlayer || !gameState) return null;
 

@@ -491,6 +491,16 @@ export class GameManager {
 
     recalculateScores(gameState);
 
+    const allPanelsFilled = gameState.panels.every(
+      (p) => p.ownerPlayerId !== null,
+    );
+    if (allPanelsFilled) {
+      gameState.status = "finished";
+      gameState.selectedPlayerIdForPanelOperation = null;
+      gameState.updatedAt = Date.now();
+      return gameState;
+    }
+
     // アタックチャンス: 正解者がパネルを置いたら消去フェーズへ移行
     if (
       gameState.currentQuestion.isAttackChance &&
