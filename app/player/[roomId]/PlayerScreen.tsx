@@ -303,6 +303,7 @@ export function PlayerScreen({ roomId }: Props) {
       .filter((p) => p.status === "active")
       .sort((a, b) => b.score - a.score);
     const myRank = ranked.findIndex((p) => p.id === myPlayer.id) + 1;
+    const winner = ranked[0];
     const theme = PLAYER_THEME[myPlayer.color] ?? PLAYER_THEME.red;
     const rankLabel = ["", "1st", "2nd", "3rd", "4th"][myRank] ?? `${myRank}th`;
     return (
@@ -320,6 +321,19 @@ export function PlayerScreen({ roomId }: Props) {
         >
           GAME SET
         </h1>
+        {winner && (
+          <p
+            className="font-black text-center leading-snug text-white w-full max-w-xs"
+            style={{
+              fontSize: "clamp(20px, 5.5vw, 32px)",
+              textShadow: "0 2px 12px rgba(0,0,0,0.25)",
+            }}
+          >
+            トップ賞は
+            <span className="mx-0.5">{winner.name}</span>
+            さんです！
+          </p>
+        )}
         <div
           className="px-8 py-5 rounded-3xl text-center shadow-xl w-full max-w-xs"
           style={{

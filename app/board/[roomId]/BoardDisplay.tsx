@@ -128,23 +128,22 @@ export function BoardDisplay({ roomId }: Props) {
           </p>
           {winner && (
             <div
-              className="px-8 py-4 rounded-3xl text-center shadow-2xl"
+              className="px-8 py-5 rounded-3xl text-center shadow-2xl"
               style={{
                 background: PODIUM_COLORS[winner.color] ?? "var(--atk-gold)",
                 boxShadow: `0 0 40px ${PODIUM_COLORS[winner.color] ?? "var(--atk-gold)"}80, 0 8px 24px rgba(0,0,0,0.4)`,
               }}
             >
-              <p className="text-white/80 font-bold text-sm tracking-widest uppercase mb-1">
-                Winner
-              </p>
               <p
-                className="font-[family-name:var(--font-bebas-neue)] leading-none text-white"
-                style={{ fontSize: "clamp(36px, 6vw, 64px)" }}
+                className="font-black leading-snug text-white"
+                style={{ fontSize: "clamp(24px, 4.5vw, 44px)" }}
               >
-                {winner.name}
+                トップ賞は
+                <span className="mx-1">{winner.name}</span>
+                さんです！
               </p>
               <p
-                className="font-[family-name:var(--font-bebas-neue)] text-white/90"
+                className="font-[family-name:var(--font-bebas-neue)] text-white/90 mt-2"
                 style={{ fontSize: "clamp(28px, 4vw, 48px)" }}
               >
                 {winner.score} パネル
