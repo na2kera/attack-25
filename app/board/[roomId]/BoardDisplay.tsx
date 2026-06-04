@@ -79,6 +79,116 @@ export function BoardDisplay({ roomId }: Props) {
     };
   }, [roomId, socket]);
 
+  /* ── Finished ── */
+  if (gameState?.status === "finished") {
+    const ranked = [...gameState.players]
+      .filter((p) => p.status === "active")
+      .sort((a, b) => b.score - a.score);
+    const winner = ranked[0];
+    const PODIUM_COLORS: Record<string, string> = {
+      red: "var(--panel-red)",
+      green: "var(--panel-green)",
+      white: "#9ca3af",
+      blue: "var(--panel-blue)",
+    };
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+        style={{
+          background: `radial-gradient(ellipse 120% 80% at 50% 100%, var(--atk-orange-deep) 0%, var(--atk-orange) 35%, var(--atk-orange-light) 80%)`,
+        }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, rgba(255,200,100,0.07) 0px, rgba(255,200,100,0.07) 3px, transparent 3px, transparent 50px)",
+          }}
+        />
+        <div className="relative z-10 flex flex-col items-center gap-8 p-8 w-full max-w-2xl">
+          <h1
+            className="font-[family-name:var(--font-bebas-neue)] leading-none tracking-widest text-center"
+            style={{
+              fontSize: "clamp(48px, 8vw, 96px)",
+              color: "#fff",
+              textShadow: "0 4px 12px rgba(0,0,0,0.35), 0 0 60px var(--atk-gold-glow)",
+            }}
+          >
+            ATTACK <span style={{ color: "var(--atk-gold)" }}>25</span>
+          </h1>
+          <p
+            className="font-[family-name:var(--font-bebas-neue)] tracking-[0.3em]"
+            style={{
+              fontSize: "clamp(20px, 3vw, 32px)",
+              color: "var(--atk-gold)",
+              textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            }}
+          >
+            GAME SET
+          </p>
+          {winner && (
+            <div
+              className="px-8 py-4 rounded-3xl text-center shadow-2xl"
+              style={{
+                background: PODIUM_COLORS[winner.color] ?? "var(--atk-gold)",
+                boxShadow: `0 0 40px ${PODIUM_COLORS[winner.color] ?? "var(--atk-gold)"}80, 0 8px 24px rgba(0,0,0,0.4)`,
+              }}
+            >
+              <p className="text-white/80 font-bold text-sm tracking-widest uppercase mb-1">
+                Winner
+              </p>
+              <p
+                className="font-[family-name:var(--font-bebas-neue)] leading-none text-white"
+                style={{ fontSize: "clamp(36px, 6vw, 64px)" }}
+              >
+                {winner.name}
+              </p>
+              <p
+                className="font-[family-name:var(--font-bebas-neue)] text-white/90"
+                style={{ fontSize: "clamp(28px, 4vw, 48px)" }}
+              >
+                {winner.score} パネル
+              </p>
+            </div>
+          )}
+          <div className="w-full space-y-3">
+            {ranked.map((player, i) => (
+              <div
+                key={player.id}
+                className="flex items-center gap-4 px-5 py-3 rounded-2xl"
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <span
+                  className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none w-8 text-center"
+                  style={{ color: i === 0 ? "var(--atk-gold)" : "rgba(255,255,255,0.5)" }}
+                >
+                  {i + 1}
+                </span>
+                <div
+                  className="w-4 h-4 rounded-full shrink-0"
+                  style={{ background: PODIUM_COLORS[player.color] ?? "#fff" }}
+                />
+                <span className="flex-1 font-black text-white text-lg truncate">
+                  {player.name}
+                </span>
+                <span
+                  className="font-[family-name:var(--font-bebas-neue)] text-2xl"
+                  style={{ color: i === 0 ? "var(--atk-gold)" : "#fff" }}
+                >
+                  {player.score}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /* ── States ── */
   if (error) {
     return (
