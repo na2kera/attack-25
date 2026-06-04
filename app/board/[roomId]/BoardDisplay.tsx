@@ -5,10 +5,13 @@ import { useSocket } from "@/hooks/useSocket";
 import { useQuestionDisplayText } from "@/hooks/useQuestionDisplayText";
 import { useAnswerTimer } from "@/hooks/useAnswerTimer";
 import { PanelGrid } from "@/app/components/PanelGrid";
+import { QrCode } from "@/app/components/QrCode";
 import type { QuestionState } from "@/types/game";
 import { getValidPlacementPanelNumbers } from "@/types/panel-flip";
 
 type Props = { roomId: string };
+
+const MAX_PLAYERS = 4;
 
 const PODIUM_CFG: Record<
   string,
@@ -200,20 +203,25 @@ export function BoardDisplay({ roomId }: Props) {
     );
   }
 
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const playerUrl = `${origin}/player/${roomId}`;
+
   if (!joined || !gameState) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center gap-4"
+        className="min-h-screen flex flex-col items-center justify-center gap-4 relative"
         style={{ background: "var(--atk-orange)" }}
       >
         <div className="w-10 h-10 rounded-full border-4 border-white border-t-transparent animate-spin" />
         <p className="font-bold text-white">接続中...</p>
+        <PlayerJoinQr playerUrl={playerUrl} />
       </div>
     );
   }
 
   const q = gameState.currentQuestion;
   const activePlayers = gameState.players.filter((p) => p.status === "active");
+  const showPlayerJoinQr = activePlayers.length < MAX_PLAYERS;
   const currentAnswerer = gameState.players.find(
     (p) => p.id === q.currentAnswerPlayerId,
   );
@@ -568,6 +576,39 @@ export function BoardDisplay({ roomId }: Props) {
           })}
         </div>
       )}
+
+      {showPlayerJoinQr && <PlayerJoinQr playerUrl={playerUrl} />}
+    </div>
+  );
+}
+
+function PlayerJoinQr({ playerUrl }: { playerUrl: string }) {
+  return (
+    <div
+      className="absolute bottom-4 right-4 z-20 flex flex-col items-center gap-1.5 rounded-xl p-2.5"
+      style={{
+        background: "rgba(0,0,0,0.35)",
+        border: "2px solid rgba(255,213,79,0.6)",
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <QrCode
+        value={playerUrl}
+        label="プレイヤー参加URLのQRコード"
+        size={120}
+      />
+      <p
+        className="text-xs font-black text-center text-white"
+        style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
+      >
+        参加する
+      </p>
+      <p
+        className="text-[10px] font-bold text-center"
+        style={{ color: "rgba(255,255,255,0.75)" }}
+      >
+        スマホで読み取り
+      </p>
     </div>
   );
 }
